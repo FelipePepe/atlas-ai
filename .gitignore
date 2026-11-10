@@ -1,0 +1,15 @@
+# Go build output
+/atlas-ai
+/atlas-ai.exe
+/dist/
+*.test
+*.out
+
+# Checked-loop working files (kept untracked on purpose)
+results.tsv
+RULES.md
+
+# Editor and OS noise
+.DS_Store
+.idea/
+.vscode/

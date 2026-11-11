@@ -65,7 +65,7 @@
       "mode": "standard",
       "status": "done",
       "evidence": "Repo created; branches main, develop, feature/neutral-skills; feature document validated as JSON and committed. Engram mirror NOT written: mem_save returned ambiguous_project (Engram resolves the project from the session cwd, which is outside this repo).",
-      "commit": "812b9c1, a92a2a9"
+      "commit": "49ed4b0 (bootstrap, formerly 812b9c1); a92a2a9 (unpublished history, removed)"
     },
     {
       "id": "T2",
@@ -149,7 +149,7 @@
       "mode": "standard",
       "status": "done",
       "evidence": "RED observed: build failed (too many arguments in call to forbiddenTokenHits; undefined: parseTokenList). GREEN observed: go test -count=1 ./... ok; gofmt and go vet clean. With the local file present the test logs 11 local tokens; with it moved aside it logs 0 and passes. Negative control: one extra local token that occurs in the skills makes TestSkillsAreAgentNeutral fail; removing it restores the pass. git status lists skills/forbidden.local.txt as ignored. git grep over tracked files for the private names, private host suffix and machine mount path returns no match. Branch rebuilt as one commit on develop; the previous history is kept only in a local backup ref that is not pushed.",
-      "commit": "the single commit of this branch"
+      "commit": "a271c19"
     },
     {
       "id": "T8",
@@ -163,7 +163,7 @@
       "mode": "standard",
       "status": "done",
       "evidence": "RED observed: build failed (undefined: describeHit) after adding the table test TestDescribeHit. GREEN observed: go test -count=1 ./... ok; gofmt and go vet clean. Negative control: with one extra local token that occurs in the skills, TestSkillsAreAgentNeutral failed with 19 messages of the form 'line N contains local forbidden token #12 (see forbidden.local.txt)' and the test output did not contain the token; restoring the local file restored the pass. Public tokens are still reported by their text. Stale evidence line removed from this document.",
-      "commit": "this commit (fix(skills): keep local forbidden tokens out of test output)"
+      "commit": "a1c7384"
     }
   ],
   "acceptance": [
@@ -185,7 +185,7 @@
         "commits": [
           "one commit on develop: feat(skills): add agent-neutral skills with contract test"
         ],
-        "history_note": "The branch was developed as ten work-unit commits, one or more per task. Before the first push they were squashed into one (T7) because an early commit imported the original skills verbatim, personal data included. The commit hashes recorded on tasks T1 to T6 refer to that unpublished history. This is a deliberate exception to one commit per task."
+        "history_note": "The branch was developed as ten work-unit commits, one or more per task. Before the first push they were squashed into one (T7) because an early commit imported the original skills verbatim, personal data included. The commit hashes recorded on tasks T1 to T6 refer to that unpublished history. This is a deliberate exception to one commit per task. On 2026-11-11 the local backup ref that held that history was deleted and its objects pruned, so the hashes a92a2a9, fe6ff14, 3d716d5, 419af68, a53efac, 73ee874 and 403d2b4 no longer resolve anywhere. The same day every commit on every branch was rewritten to use the GitHub noreply author and committer email; contents are unchanged (identical trees), but hashes changed: 812b9c1 became 49ed4b0, 9094027 became a271c19 and 70409a7 became a1c7384."
       }
     ]
   },
@@ -196,13 +196,13 @@
     "go test -count=1 ./... -> ok after T8"
   ],
   "mirror": "pending (Engram ambiguous_project from the session cwd)",
-  "next_step": "The public GitHub repository exists and is empty; nothing is pushed. User decisions: the author email on the commits, the first push, the PR to develop (one PR or a chain) and the license. Then the next feature from docs/scope-and-roadmap.md.",
+  "next_step": "The public GitHub repository exists and is empty; nothing is pushed. The author email is settled (GitHub noreply, applied to all commits). User decisions: the first push, the PR to develop (one PR or a chain) and the license. Then the next feature from docs/scope-and-roadmap.md.",
   "review": {
     "mode": "on (default, unset)",
     "assessed_tier": "medium",
     "review_due": true,
     "review_due_reason": "slice_budget_reached",
-    "base_ref": "812b9c1",
+    "base_ref": "49ed4b0 (812b9c1 before the author-email rewrite)",
     "outcome": "granted by the user; approved and acknowledged",
     "lineage": "review-99c3869b9f3ea12a",
     "lens": "review-reliability",

@@ -8,7 +8,7 @@ token-saving tools, skills, hooks and MCP server configuration for your coding a
 
 Early development. The repository contains the agent-neutral skills with the contract test
 that guards them, and the skeleton of the `atlas-ai` command. The installer itself does not
-exist yet: the command only reports its version and the paths it will use.
+exist yet: the command reports its version and paths, and lists and restores backup sets.
 
 ## Usage
 
@@ -20,6 +20,15 @@ atlas-ai backups    List the backup sets, newest first
 atlas-ai restore [--yes] [--force] <id>
                     Restore the files of a backup set
 ```
+
+`paths` resolves the directories from the environment of the current platform:
+
+| Platform | Home | State directory |
+|---|---|---|
+| Linux | `$HOME` | `$XDG_STATE_HOME/atlas-ai`, or `$HOME/.local/state/atlas-ai` |
+| Windows | `%USERPROFILE%` | `%LOCALAPPDATA%\atlas-ai` |
+
+Empty or relative values are rejected; atlas-ai never falls back to the current directory.
 
 ### Backups and restore
 
@@ -38,20 +47,11 @@ For each file the plan is one of:
 | `skip-unchanged` | The file already has the original content |
 | `conflict` | The file changed after atlas-ai wrote it; it is left untouched |
 
-Flags go before the id. `--force` overwrites conflicting files. Every restore first records its own backup set, labelled
-`restore <id>`, so a restore can be undone the same way.
+Flags go before the id. `--force` overwrites conflicting files. Every restore first records
+its own backup set, labelled `restore <id>`, so a restore can be undone the same way.
 
 Exit codes: `0` everything restored, `1` runtime error, abort or conflicts left in place,
 `2` usage error.
-
-`paths` resolves the directories from the environment of the current platform:
-
-| Platform | Home | State directory |
-|---|---|---|
-| Linux | `$HOME` | `$XDG_STATE_HOME/atlas-ai`, or `$HOME/.local/state/atlas-ai` |
-| Windows | `%USERPROFILE%` | `%LOCALAPPDATA%\atlas-ai` |
-
-Empty or relative values are rejected; atlas-ai never falls back to the current directory.
 
 ## Layout
 

@@ -9,6 +9,10 @@ token-saving tools, skills, hooks and MCP server configuration for your coding a
 Early development. The repository currently contains only the agent-neutral skills and the
 contract test that guards them. The installer itself does not exist yet.
 
+## Documentation
+
+[`docs/scope-and-roadmap.md`](docs/scope-and-roadmap.md) holds the project scope, the decisions taken and the roadmap.
+
 ## Skills
 
 `skills/` holds one neutral `SKILL.md` per skill. The same text is meant to be copied unchanged

@@ -16,7 +16,33 @@ exist yet: the command only reports its version and the paths it will use.
 atlas-ai help       Show the usage
 atlas-ai version    Print the version and platform
 atlas-ai paths      Print the home and state directories atlas-ai uses
+atlas-ai backups    List the backup sets, newest first
+atlas-ai restore [--yes] [--force] <id>
+                    Restore the files of a backup set
 ```
+
+### Backups and restore
+
+Before atlas-ai changes a file it records a backup set under `<state directory>/backups/<id>/`:
+a `manifest.json` plus a copy of every file as it was. Directories are created with mode `0700`
+and files with `0600`. Symlinks and non-regular files are never backed up or followed.
+
+`restore` prints what it will do and asks `Apply? [y/N]`. Anything other than `y` or `yes`,
+including end of input, aborts without changing anything; `--yes` skips the question.
+For each file the plan is one of:
+
+| Action | Meaning |
+|---|---|
+| `restore` | Put the original content back |
+| `delete` | The file did not exist before the install; remove it |
+| `skip-unchanged` | The file already has the original content |
+| `conflict` | The file changed after atlas-ai wrote it; it is left untouched |
+
+Flags go before the id. `--force` overwrites conflicting files. Every restore first records its own backup set, labelled
+`restore <id>`, so a restore can be undone the same way.
+
+Exit codes: `0` everything restored, `1` runtime error, abort or conflicts left in place,
+`2` usage error.
 
 `paths` resolves the directories from the environment of the current platform:
 
@@ -34,6 +60,7 @@ Empty or relative values are rejected; atlas-ai never falls back to the current 
 | `cmd/atlas-ai` | Entry point of the binary |
 | `internal/cli` | Command dispatcher and commands |
 | `internal/platform` | Platform paths for Linux and Windows |
+| `internal/backup` | Backup sets, listing and restore with drift detection |
 | `skills` | Agent-neutral skills, embedded in the binary later |
 | `docs` | Scope and roadmap |
 | `odd` | Task documents of the features under development |

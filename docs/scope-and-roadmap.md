@@ -161,7 +161,17 @@ Feasibility differs per agent:
 
 Consequence for the model-per-phase feature: its phases have to be defined in terms of ODD, since there are no SDD phases to map models to.
 
-**Open.** Which ODD steps count as phases for model selection.
+**Decided.** Three phases, matching the points where ODD delegates work:
+
+| Phase | Work | Model tier |
+|---|---|---|
+| Explore | Read code and documentation | Cheap and fast |
+| Implement | Write the change | Intermediate |
+| Review | Check the result before it is accepted | Most capable |
+
+**Decided.** The main conversation, which orchestrates and decides, keeps the model the user selected in their agent. atlas-ai does not change it.
+
+**Open.** Which concrete model each tier maps to in each agent, and whether the user can override the mapping at install time.
 
 ## 7. Open questions
 
@@ -172,7 +182,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 1. Which default vault path the installer offers, and how the chosen path is made available to the agents on each platform.
 2. The exact list of English folder and field names the vault uses.
 3. What the detected project stack drives.
-4. Which ODD steps count as phases for model selection.
+4. Which concrete model each phase tier maps to in each agent, and whether the user can override the mapping at install time.
 
 **Unverified**
 

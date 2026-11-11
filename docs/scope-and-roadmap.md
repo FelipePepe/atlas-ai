@@ -157,7 +157,11 @@ Feasibility differs per agent:
 
 ### Workflow shipped
 
-**Open.** Whether the installer ships an organic task-driven workflow (ODD), a spec-driven workflow (SDD), or both.
+**Decided.** The installer ships the organic task-driven workflow (ODD) only. A spec-driven workflow (SDD) is not part of v1; it may be added later.
+
+Consequence for the model-per-phase feature: its phases have to be defined in terms of ODD, since there are no SDD phases to map models to.
+
+**Open.** Which ODD steps count as phases for model selection.
 
 ## 7. Open questions
 
@@ -168,7 +172,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 1. Which default vault path the installer offers, and how the chosen path is made available to the agents on each platform.
 2. The exact list of English folder and field names the vault uses.
 3. What the detected project stack drives.
-4. Which workflow the installer ships: ODD, SDD, or both.
+4. Which ODD steps count as phases for model selection.
 
 **Unverified**
 

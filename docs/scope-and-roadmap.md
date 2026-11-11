@@ -61,7 +61,7 @@ The table summarizes each component. The status column refers to the facts in th
 | cbm (codebase-memory-mcp) | Installs the code knowledge graph tool and registers it with each agent | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | RTK | Installs the token-saving command proxy | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | Headroom | Installs a token-saving tool | Decided (component); Proposed (optional) | Currently installed through `uv`. |
-| Logbook | Installs the session logbook script | Decided (component and form); Open (Python prerequisite) | Shipped as a Python script. See below. |
+| Logbook | Installs the session logbook script | Decided (component, form, Python prerequisite); Open (script location) | Shipped as a Python script. See below. |
 | Atlas vault | Provides a local knowledge vault | Decided (component); Proposed (location); Open (resolution, layout) | See below. |
 | Hooks | Writes hooks per agent through adapters | Decided (component); Unverified (files and formats) | |
 | MCP server configuration | Writes MCP configuration per agent through adapters | Decided (component); Unverified (files and formats) | |
@@ -93,7 +93,7 @@ The table summarizes each component. The status column refers to the facts in th
 
 Consequences of this decision: Python becomes a prerequisite of the logbook component on every machine, including Windows, and the script has to enter version control before the installer can ship it.
 
-**Open.** What the installer does on a machine without Python: stop and ask the user to install it, skip the logbook component, or install Python itself.
+**Decided.** On a machine without Python the installer stops and asks the user to install it. It does not install Python itself and does not skip the logbook silently.
 
 **Open.** Where the script lives: in this repository or in a repository of its own.
 
@@ -155,7 +155,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 
 **Open**
 
-1. Logbook: what the installer does on a machine without Python, and where the script lives.
+1. Logbook: where the script lives, in this repository or in one of its own.
 2. How `ATLAS_VAULT` is resolved: prompt, default location, or existing vault detection.
 3. The folder names the vault uses internally.
 4. What the detected project stack drives.

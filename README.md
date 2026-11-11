@@ -27,6 +27,10 @@ The neutrality rules are enforced by `skills/skills_test.go`:
 go test ./...
 ```
 
+The test checks a public list of generic tokens. A maintainer can add private names (project
+names, hosts, paths) to an optional `skills/forbidden.local.txt`, one per line; that file is
+ignored by git and never published.
+
 ## Development
 
 Gitflow: `feature/*` branches from `develop`; `main` only receives releases.

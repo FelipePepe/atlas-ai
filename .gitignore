@@ -9,6 +9,9 @@
 results.tsv
 RULES.md
 
+# Private extra tokens for the skills contract test (never published)
+skills/forbidden.local.txt
+
 # Editor and OS noise
 .DS_Store
 .idea/

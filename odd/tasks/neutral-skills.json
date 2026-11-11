@@ -1,0 +1,235 @@
+{
+  "feature": "neutral-skills",
+  "objective": "Bootstrap the atlas-ai repository and land the three canonical skills (session-start, session-end, checked-loop) as one agent-neutral text each, guarded by a contract test.",
+  "problem": "The canonical skills live in ~/.pi/agent/skills and only work in pi: their text names pi-specific tools, files and the pi-subagents scout, and hard-codes machine paths and personal projects. atlas-ai must ship one text that works unchanged in Claude Code, GitHub Copilot CLI and GitHub Copilot in VS Code, for any user.",
+  "scope": {
+    "in": [
+      "New git repository at ~/sources/atlas-ai with main, develop and feature/neutral-skills",
+      "Go module github.com/FelipePepe/atlas-ai",
+      "skills/<name>/SKILL.md for session-start, session-end and checked-loop",
+      "skills/embed.go and the contract test skills/skills_test.go"
+    ],
+    "out": [
+      "The live skills in ~/.pi, ~/.claude and ~/.copilot are not modified",
+      "No GitHub repository, push or pull request (asked at close)",
+      "No LICENSE file yet",
+      "Go CLI, component installers, agent adapters and release workflow (later features)"
+    ]
+  },
+  "constraints": [
+    "Conventional commits, no AI attribution",
+    "Never build after changes; tests are run with go test",
+    "No secrets in any file",
+    "Every step, rule and heuristic of the pi versions is preserved in the neutral rewrite",
+    "checked-loop follows the same neutrality contract (user decision of 2026-11-10 after the native review; replaces the earlier byte-identical constraint)"
+  ],
+  "neutrality_contract": [
+    "Tools are named by base name (mem_context, mem_search, Atlas search/read, index_status, index_repository) under whatever prefix the runtime exposes",
+    "Refer to 'this agent's global instructions file' instead of CLAUDE.md, AGENTS.md or APPEND_SYSTEM.md",
+    "logbook new --tool <agent-name>: the value this agent already uses in the logbook; if the agent has a Stop hook that calls 'logbook hook', use exactly the hook's value",
+    "Delegation: if the runtime has a read-only subagent, delegate heavy reconnaissance; otherwise read inline and say so in the briefing",
+    "mem_session_end only if the runtime exposes it",
+    "No machine paths or personal projects: $ATLAS_VAULT and generic example project names",
+    "Frontmatter: name equals the directory and matches ^[a-z0-9-]{1,64}$; description is non-empty and at most 1024 characters"
+  ],
+  "forbidden_tokens": [
+    "--tool pi",
+    "--tool 'Claude CLI'",
+    "APPEND_SYSTEM.md",
+    "gateway-mcp_",
+    "engram_mem_",
+    "cbm_",
+    "mcp__",
+    "pi-subagents",
+    "/mnt/",
+    "/home/",
+    "atlas_search"
+  ],
+  "forbidden_tokens_local": "Optional private list in skills/forbidden.local.txt (ignored by git, one token per line). The test adds its tokens when the file exists. It holds names that must not be published: private project names, private hosts, machine-specific paths.",
+  "tdd": {
+    "mode": "on",
+    "source": "explicit user approval of the implementation plan (2026-11-10)",
+    "runner": "go test ./..."
+  },
+  "route": "direct; per-task route recorded on each task",
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "Bootstrap the repository: git init, main/develop, feature/neutral-skills, go.mod, .gitignore, README.md and this feature document with its Engram mirror.",
+      "tool": "Bash",
+      "args": {
+        "query": "git init -b main; go mod init github.com/FelipePepe/atlas-ai; git branch develop; git switch -c feature/neutral-skills develop"
+      },
+      "reason": "A programming project gets a git repo and gitflow first; ODD requires the feature document before the first source write. Route: inline (mechanical, no design decision).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "Repo created; branches main, develop, feature/neutral-skills; feature document validated as JSON and committed. Engram mirror NOT written: mem_save returned ambiguous_project (Engram resolves the project from the session cwd, which is outside this repo).",
+      "commit": "812b9c1, a92a2a9"
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "Import the three canonical pi skills verbatim into skills/<name>/SKILL.md (checked-loop resolved through its symlink).",
+      "tool": "Bash",
+      "args": {
+        "query": "cp -L ~/.pi/agent/skills/<name>/SKILL.md skills/<name>/SKILL.md"
+      },
+      "reason": "A verbatim baseline commit records provenance (pi-skills f49dcda) and makes the neutral rewrite reviewable as a plain diff. Route: inline (mechanical copy).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "cmp reported the three copies identical to their sources (pi-skills f49dcda; checked-loop via symlink target).",
+      "commit": "fe6ff14"
+    },
+    {
+      "id": "T3",
+      "step": 3,
+      "description": "RED: add skills/embed.go (embedded FS of */SKILL.md) and skills/skills_test.go, a contract test for the frontmatter rules and the forbidden-token list; add gopkg.in/yaml.v3. Run the test and record the observed failure.",
+      "tool": "Write",
+      "args": {
+        "query": "skills/embed.go, skills/skills_test.go"
+      },
+      "reason": "TDD: the failure must be observed before the rewrite. The embedded FS is what the installer will ship, so the test checks the shipped bytes. Route: inline (one non-trivial file).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED observed with go test ./...: TestSkillsAreAgentNeutral failed on session-start and session-end with 40 forbidden-token hits; checked-loop and both frontmatter tests passed. gofmt and go vet clean.",
+      "commit": "3d716d5"
+    },
+    {
+      "id": "T4",
+      "step": 4,
+      "description": "GREEN: rewrite skills/session-start/SKILL.md and skills/session-end/SKILL.md to the neutrality contract, keeping every step, rule and heuristic, including Step 2.5 reconnaissance and the mem_session_end close. Replace the 'Adapted for pi' header comment with a canonical-source note. checked-loop stays byte-identical.",
+      "tool": "Agent",
+      "args": {
+        "query": "general-purpose writer: read this document, rewrite the two SKILL.md files, run go test ./... until green, report the diff summary; no other files"
+      },
+      "reason": "Writer trigger: two non-trivial files, so one bounded writer is delegated with this document, the TDD mode and the runner. Route: delegated.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "GREEN observed with go test -count=1 ./... (ok). Delegated writer changed only the two SKILL.md files (46+/40- and 30+/30-). Parent read the full diff: 18 and 11 step headings before and after, no step, rule or heuristic removed. skills/checked-loop unchanged since fe6ff14. Removed on purpose: the session-end Compatibility section and the personal Common projects list (contract item 6).",
+      "commit": "419af68"
+    },
+    {
+      "id": "T5",
+      "step": 5,
+      "description": "Close: update this document and its Engram mirror, run the review assessment on the work-unit commits, write the logbook finish entry, report.",
+      "tool": "Edit",
+      "args": {
+        "query": "odd/tasks/neutral-skills.json"
+      },
+      "reason": "A task is done only after its checks were observed; failed, skipped or unavailable checks are recorded as such. Route: inline.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "Document updated. Native review assessment: risk medium, review_due true (slice_budget_reached, 925 changed lines including 634 imported verbatim); preflight status returned action start. Review NOT started: candidate consent is the user's. Engram mirror still pending. No push, no pull request.",
+      "commit": "this commit"
+    },
+    {
+      "id": "T6",
+      "step": 6,
+      "description": "Fix the three advisory review findings: neutralize checked-loop (personal run names, repo-local tools/ scripts, private issue codes), replace the atlas_search tool name in session-start and session-end, and add table tests for the detectors plus the new forbidden tokens.",
+      "tool": "Edit",
+      "args": {
+        "query": "skills/skills_test.go, skills/checked-loop/SKILL.md, skills/session-start/SKILL.md, skills/session-end/SKILL.md"
+      },
+      "reason": "Accepted review findings; the user authorized all three. Route: inline (one non-trivial file, the test; the SKILL.md edits are small wording changes).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED observed after 73ee874: 6 hits (checked-loop lines 51 and 150: two private project names; session-start lines 33 and 190 and session-end line 196: atlas_search); the new table tests for splitFrontmatter and forbiddenTokenHits passed. GREEN observed after 403d2b4 with go test -count=1 ./... (ok); gofmt and go vet clean. grep for those names, tools/, atlas_search and private issue codes returns 0 matches in the three skills. checked-loop: 56 list items and 165 lines before and after.",
+      "commit": "73ee874, 403d2b4"
+    },
+    {
+      "id": "T7",
+      "step": 7,
+      "description": "Remove personal data before the first push to a public repository: move private names out of skills/skills_test.go into an optional git-ignored list (skills/forbidden.local.txt), keep only generic tokens in the public list, remove the names from this document, and rebuild the branch as a single commit so the verbatim import of the original skills is not part of the published history.",
+      "tool": "Agent",
+      "args": {
+        "query": "general-purpose writer on Sonnet: skills/skills_test.go, .gitignore, README.md, skills/forbidden.local.txt; no git operations. Parent: this document, review, checks, backup ref, squash."
+      },
+      "reason": "The repository is public. The verbatim import commit, the token list and the evidence texts named private projects, hosts and machine paths. Route: planned as a delegated writer for the test; the delegated writer stopped before changing any file, so the whole task was done inline at the user's request.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED observed: build failed (too many arguments in call to forbiddenTokenHits; undefined: parseTokenList). GREEN observed: go test -count=1 ./... ok; gofmt and go vet clean. With the local file present the test logs 11 local tokens; with it moved aside it logs 0 and passes. Negative control: one extra local token that occurs in the skills makes TestSkillsAreAgentNeutral fail; removing it restores the pass. git status lists skills/forbidden.local.txt as ignored. git grep over tracked files for the private names, private host suffix and machine mount path returns no match. Branch rebuilt as one commit on develop; the previous history is kept only in a local backup ref that is not pushed.",
+      "commit": "the single commit of this branch"
+    }
+  ],
+  "acceptance": [
+    "go test ./... fails after T3 on session-start and session-end and passes after T4",
+    "The T2 to T4 diff shows no step, rule or heuristic removed from session-start or session-end",
+    "Working tree clean on feature/neutral-skills with one work-unit commit per task",
+    "grep for the private project names, tools/ and atlas_search in skills/*/SKILL.md returns nothing",
+    "No tracked file and no commit reachable from the branch contains a private project name, private host or machine-specific path",
+    "checked-loop keeps the same number of rules and Known gaps bullets"
+  ],
+  "delivery": {
+    "strategy": "ask-on-risk",
+    "forecast_authored_lines": 300,
+    "running_authored_lines": 600,
+    "note": "Verbatim skill imports (634 lines, T2) are not authored lines. Running count about 600 on the feature branch (roughly 190 of them this document), over the ~400 planning heuristic; the user has not been asked for a chain strategy yet because no remote or pull request exists. Push and PR are the user's decision.",
+    "slices": [
+      {
+        "pr": "not created",
+        "commits": [
+          "one commit on develop: feat(skills): add agent-neutral skills with contract test"
+        ],
+        "history_note": "The branch was developed as ten work-unit commits, one or more per task. Before the first push they were squashed into one (T7) because an early commit imported the original skills verbatim, personal data included. The commit hashes recorded on tasks T1 to T6 refer to that unpublished history. This is a deliberate exception to one commit per task."
+      }
+    ]
+  },
+  "progress": "7/7 tasks done",
+  "evidence": [
+    "go test -count=1 ./... -> ok github.com/FelipePepe/atlas-ai/skills",
+    "git diff fe6ff14 HEAD -- skills/checked-loop -> empty",
+    "go test -count=1 ./... -> ok after T6 (403d2b4)"
+  ],
+  "mirror": "pending (Engram ambiguous_project from the session cwd)",
+  "next_step": "User decisions: create the GitHub repository (visibility) and open the PR to develop, as one PR or a chain. Then plan the next feature from the component inventory.",
+  "review": {
+    "mode": "on (default, unset)",
+    "assessed_tier": "medium",
+    "review_due": true,
+    "review_due_reason": "slice_budget_reached",
+    "base_ref": "812b9c1",
+    "outcome": "granted by the user; approved and acknowledged",
+    "lineage": "review-99c3869b9f3ea12a",
+    "lens": "review-reliability",
+    "reviewed_boundary": "a53efac",
+    "advisory_findings": [
+      {
+        "id": "R3-checked-loop-personal-projects-unproved",
+        "severity": "WARNING",
+        "location": "skills/checked-loop/SKILL.md:51-54,150",
+        "claim": "checked-loop names a personal run and repo-local tools/ scripts; the byte-identical constraint conflicts with the no-personal-projects contract item and the test cannot detect it",
+        "status": "fixed in T6 (403d2b4)"
+      },
+      {
+        "id": "R3-atlas-search-prefixed-name",
+        "severity": "SUGGESTION",
+        "location": "skills/session-start/SKILL.md:33,190; skills/session-end/SKILL.md:196",
+        "claim": "atlas_search is still used as a concrete tool identifier",
+        "status": "fixed in T6 (403d2b4)"
+      },
+      {
+        "id": "R3-detector-negative-paths-untested",
+        "severity": "SUGGESTION",
+        "location": "skills/skills_test.go:47-58",
+        "claim": "splitFrontmatter error branches and the token scan have no table test on in-memory strings",
+        "status": "fixed in T6 (73ee874)"
+      }
+    ],
+    "follow_up_assessment": {
+      "base_ref": "a53efac",
+      "risk": "medium",
+      "changed_lines": 226,
+      "review_due": false,
+      "review_due_reason": "under_budget",
+      "outcome": "under budget; stays pending in the slice until a later commit reaches the budget"
+    }
+  },
+  "open_points": [
+    "How an agent resolves $ATLAS_VAULT (environment variable or install-time substitution) is an installer decision",
+    "Vault layout names are Spanish (Proyectos/, Ultima actualizacion field) and were kept",
+    "The skills assume the logbook CLI and the atlas-docs skill may exist; both degrade gracefully",
+    "Not verified: the skills running inside Claude Code, Copilot CLI or VS Code Copilot (they are not installed anywhere by this feature)"
+  ],
+  "forbidden_tokens_note": "The private list is a regression guard for residue already found, not a general detector of personal content. It only runs on a machine that has the local file; in CI only the public list applies."
+}

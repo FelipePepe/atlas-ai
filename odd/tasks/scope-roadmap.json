@@ -1,0 +1,95 @@
+{
+  "feature": "scope-roadmap",
+  "objective": "Record in the repository what atlas-ai is, what has been decided, what is only proposed, what is still open, and the order of the next features.",
+  "problem": "The design decisions exist only in conversation history, a memory file outside the repository and logbook entries. Later features have no written base to start from.",
+  "scope": {
+    "in": [
+      "docs/scope-and-roadmap.md: purpose, supported agents, distribution, security principles, components, behavior features, open questions, roadmap",
+      "README.md: one line linking the document"
+    ],
+    "out": [
+      "Any installer code",
+      "Resolving the open questions",
+      "Creating the GitHub repository, pushing, opening a pull request"
+    ]
+  },
+  "constraints": [
+    "English, neutral professional wording",
+    "Every statement carries a status: Decided (confirmed by the user), Proposed (recommendation awaiting the user), Open (no recommendation yet) or Unverified (not checked against documentation)",
+    "Nothing proposed is written as decided",
+    "No personal hosts, machine paths or private project names in the document",
+    "Branch feature/scope-roadmap from develop; never commit to main or develop"
+  ],
+  "tdd": {
+    "mode": "not-applicable",
+    "source": "this feature adds documentation only; the project default (TDD on) has no behavior to drive here",
+    "runner": "go test ./..."
+  },
+  "route": {
+    "selected": "delegated direct",
+    "evidence": "User instruction: use a Sonnet subagent as the writer. The parent creates the branch and this document, reads the full result, runs the checks and commits."
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "Write docs/scope-and-roadmap.md from the approved outline and add a Documentation line to README.md linking it.",
+      "tool": "Agent",
+      "args": { "query": "general-purpose subagent on Sonnet writes docs/scope-and-roadmap.md and one README.md line; no commits; returns gaps" },
+      "reason": "The single deliverable of the feature; statuses keep proposals from being read as decisions.",
+      "mode": "standard",
+      "route": "delegated (Sonnet writer), parent review",
+      "status": "done",
+      "evidence": {
+        "writer": "general-purpose subagent on Sonnet wrote both files and made no commits",
+        "parent_review": "full document read; two corrections: macOS and Cursor exclusion no longer labelled Decided (it follows from the lists, it was not decided separately); roadmap dependencies filled for features 9 to 11 with the reason stated",
+        "checks": {
+          "residue_grep": "no personal host, machine path or private project name in docs/scope-and-roadmap.md or README.md",
+          "readme_link": "docs/scope-and-roadmap.md exists",
+          "go_test": "go test -count=1 ./... -> 'no packages to test' (this branch has no Go packages; they live on feature/neutral-skills)",
+          "decisions_read_back": "the nine decisions in the scope memory file appear with status Decided; no proposal is labelled Decided"
+        },
+        "review_assessment": "risk medium, 279 changed lines from develop, review_due false (under_budget)"
+      },
+      "commit": "46ce447 (384b442 before the author-email rewrite)"
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "Record results, the review assessment outcome and the next step in this document.",
+      "tool": "Edit",
+      "args": { "query": "odd/tasks/scope-roadmap.json" },
+      "reason": "Closes the feature with observed outcomes.",
+      "mode": "standard",
+      "route": "inline",
+      "status": "done",
+      "evidence": "results, review assessment outcome and next step recorded in this document",
+      "commit": "the commit that carries this record (docs(odd): record scope-roadmap results)"
+    }
+  ],
+  "acceptance": [
+    "Every decision the user confirmed appears in the document with status Decided",
+    "No proposal, open question or unverified claim is labelled Decided",
+    "The document contains no personal host, machine path or private project name",
+    "The README link resolves to the document",
+    "go test -count=1 ./... result is recorded as observed"
+  ],
+  "delivery": {
+    "strategy": "ask-on-risk",
+    "forecast_authored_lines": 250,
+    "running_authored_lines": 279,
+    "slices": [
+      {
+        "pr": "#2 https://github.com/FelipePepe/atlas-ai/pull/2 (feature/scope-roadmap -> develop, opened 2026-11-11, not merged)",
+        "commits": "every commit of feature/scope-roadmap after develop (49ed4b0), up to and including the commit that carries this record"
+      }
+    ],
+    "review": "assessed from develop: medium, under_budget, no review due; slice stays pending",
+    "push_pr": "pushed and pull request #2 opened on 2026-11-11 at the user's request"
+  },
+  "progress": "2/2 tasks done",
+  "evidence": {
+    "engram_mirror": "synced 2026-11-11: Engram project atlas-ai, topic odd/scope-roadmap/tasks, full document"
+  },
+  "next_step": "Pull request #2 to develop is open, not merged; it and #1 both edit README.md, so the second to merge may need a conflict resolution. Owner reviews the Proposed and Open items in docs/scope-and-roadmap.md"
+}

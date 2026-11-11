@@ -61,7 +61,7 @@ The table summarizes each component. The status column refers to the facts in th
 | cbm (codebase-memory-mcp) | Installs the code knowledge graph tool and registers it with each agent | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | RTK | Installs the token-saving command proxy | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | Headroom | Installs a token-saving tool | Decided (component); Proposed (optional) | Currently installed through `uv`. |
-| Logbook | Provides the session logbook | Decided (component); Open (form) | Script or Go subcommand is not settled. |
+| Logbook | Installs the session logbook script | Decided (component and form); Open (Python prerequisite) | Shipped as a Python script. See below. |
 | Atlas vault | Provides a local knowledge vault | Decided (component); Proposed (location); Open (resolution, layout) | See below. |
 | Hooks | Writes hooks per agent through adapters | Decided (component); Unverified (files and formats) | |
 | MCP server configuration | Writes MCP configuration per agent through adapters | Decided (component); Unverified (files and formats) | |
@@ -89,12 +89,13 @@ The table summarizes each component. The status column refers to the facts in th
 
 **Decided.** The session logbook is a component. Today it is a dependency-free Python script that is not in version control.
 
-**Open.** Two options exist:
+**Decided.** The logbook is shipped as the Python script. The alternative, porting it to a subcommand of the Go binary, was considered and not chosen.
 
-- Ship the script. This requires Python on every machine.
-- Port it to a subcommand of the Go binary. This gives one binary and needs no Python on Windows.
+Consequences of this decision: Python becomes a prerequisite of the logbook component on every machine, including Windows, and the script has to enter version control before the installer can ship it.
 
-The recommendation is the port, but it is not decided.
+**Open.** What the installer does on a machine without Python: stop and ask the user to install it, skip the logbook component, or install Python itself.
+
+**Open.** Where the script lives: in this repository or in a repository of its own.
 
 ### Atlas vault
 
@@ -154,7 +155,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 
 **Open**
 
-1. Logbook form: ship the Python script, or port it to a subcommand of the Go binary.
+1. Logbook: what the installer does on a machine without Python, and where the script lives.
 2. How `ATLAS_VAULT` is resolved: prompt, default location, or existing vault detection.
 3. The folder names the vault uses internally.
 4. What the detected project stack drives.

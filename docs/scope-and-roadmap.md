@@ -62,7 +62,7 @@ The table summarizes each component. The status column refers to the facts in th
 | RTK | Installs the token-saving command proxy | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | Headroom | Installs a token-saving tool | Decided (component); Proposed (optional) | Currently installed through `uv`. |
 | Logbook | Installs the session logbook script | Decided | Shipped as a Python script embedded in the binary; requires Python. See below. |
-| Atlas vault | Provides a local knowledge vault | Decided (component, local per user); Proposed (`ATLAS_VAULT` variable); Open (resolution, layout) | See below. |
+| Atlas vault | Provides a local knowledge vault | Decided (component, local per user, path asked with a default); Proposed (`ATLAS_VAULT` variable); Open (default path, layout) | See below. |
 | Hooks | Writes hooks per agent through adapters | Decided (component); Unverified (files and formats) | |
 | MCP server configuration | Writes MCP configuration per agent through adapters | Decided (component); Unverified (files and formats) | |
 | Private-only items | Not installed | Proposed | Excluded from the public installer. |
@@ -107,7 +107,9 @@ The script has not been imported yet. Its current default logbook directory is s
 
 **Proposed.** The vault is located through an `ATLAS_VAULT` environment variable. The shipped skills already refer to the vault by that name.
 
-**Open.** How `ATLAS_VAULT` is resolved: a prompt, a default location, or detection of an existing vault.
+**Decided.** The installer asks for the vault path and offers a default inside the user's home directory. The user accepts it or types another path; if the folder does not exist, the installer creates it. The installer does not use a fixed path without asking and does not scan the disk for existing vaults.
+
+**Open.** Which default path the installer offers, and how the chosen path is made available to the agents on each platform.
 
 **Open.** Which folder names the vault uses internally. The existing skills assume some Spanish folder names.
 
@@ -159,7 +161,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 
 **Open**
 
-1. How `ATLAS_VAULT` is resolved: prompt, default location, or existing vault detection.
+1. Which default vault path the installer offers, and how the chosen path is made available to the agents on each platform.
 2. The folder names the vault uses internally.
 3. What the detected project stack drives.
 4. Which workflow the installer ships: ODD, SDD, or both.

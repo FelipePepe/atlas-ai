@@ -78,13 +78,18 @@
     "strategy": "ask-on-risk",
     "forecast_authored_lines": 250,
     "running_authored_lines": 279,
-    "slices": [],
+    "slices": [
+      {
+        "pr": "#2 https://github.com/FelipePepe/atlas-ai/pull/2 (feature/scope-roadmap -> develop, opened 2026-11-11, not merged)",
+        "commits": "every commit of feature/scope-roadmap after develop (49ed4b0), up to and including the commit that carries this record"
+      }
+    ],
     "review": "assessed from develop: medium, under_budget, no review due; slice stays pending",
-    "push_pr": "user decision, not part of this feature"
+    "push_pr": "pushed and pull request #2 opened on 2026-11-11 at the user's request"
   },
   "progress": "2/2 tasks done",
   "evidence": {
     "engram_mirror": "synced 2026-11-11: Engram project atlas-ai, topic odd/scope-roadmap/tasks, full document"
   },
-  "next_step": "Owner reviews the Proposed and Open items in docs/scope-and-roadmap.md; push and pull request to develop are the owner's decision"
+  "next_step": "Pull request #2 to develop is open, not merged; it and #1 both edit README.md, so the second to merge may need a conflict resolution. Owner reviews the Proposed and Open items in docs/scope-and-roadmap.md"
 }

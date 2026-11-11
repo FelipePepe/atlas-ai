@@ -51,7 +51,7 @@
         },
         "review_assessment": "risk medium, 279 changed lines from develop, review_due false (under_budget)"
       },
-      "commit": "384b442"
+      "commit": "46ce447 (384b442 before the author-email rewrite)"
     },
     {
       "id": "T2",

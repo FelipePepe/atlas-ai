@@ -150,6 +150,20 @@
       "status": "done",
       "evidence": "RED observed: build failed (too many arguments in call to forbiddenTokenHits; undefined: parseTokenList). GREEN observed: go test -count=1 ./... ok; gofmt and go vet clean. With the local file present the test logs 11 local tokens; with it moved aside it logs 0 and passes. Negative control: one extra local token that occurs in the skills makes TestSkillsAreAgentNeutral fail; removing it restores the pass. git status lists skills/forbidden.local.txt as ignored. git grep over tracked files for the private names, private host suffix and machine mount path returns no match. Branch rebuilt as one commit on develop; the previous history is kept only in a local backup ref that is not pushed.",
       "commit": "the single commit of this branch"
+    },
+    {
+      "id": "T8",
+      "step": 8,
+      "description": "Fix the two advisory findings of the second native review: a failing TestSkillsAreAgentNeutral must not print a token that comes from the private local list (report its number instead), and the stale checked-loop evidence line is removed from this document.",
+      "tool": "Edit",
+      "args": {
+        "query": "skills/skills_test.go, odd/tasks/neutral-skills.json"
+      },
+      "reason": "Accepted review findings; the user authorized both before the first push. Route: inline (one non-trivial file, the test, plus this document).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED observed: build failed (undefined: describeHit) after adding the table test TestDescribeHit. GREEN observed: go test -count=1 ./... ok; gofmt and go vet clean. Negative control: with one extra local token that occurs in the skills, TestSkillsAreAgentNeutral failed with 19 messages of the form 'line N contains local forbidden token #12 (see forbidden.local.txt)' and the test output did not contain the token; restoring the local file restored the pass. Public tokens are still reported by their text. Stale evidence line removed from this document.",
+      "commit": "this commit (fix(skills): keep local forbidden tokens out of test output)"
     }
   ],
   "acceptance": [
@@ -175,14 +189,14 @@
       }
     ]
   },
-  "progress": "7/7 tasks done",
+  "progress": "8/8 tasks done",
   "evidence": [
     "go test -count=1 ./... -> ok github.com/FelipePepe/atlas-ai/skills",
-    "git diff fe6ff14 HEAD -- skills/checked-loop -> empty",
-    "go test -count=1 ./... -> ok after T6 (403d2b4)"
+    "go test -count=1 ./... -> ok after T6",
+    "go test -count=1 ./... -> ok after T8"
   ],
   "mirror": "pending (Engram ambiguous_project from the session cwd)",
-  "next_step": "User decisions: create the GitHub repository (visibility) and open the PR to develop, as one PR or a chain. Then plan the next feature from the component inventory.",
+  "next_step": "The public GitHub repository exists and is empty; nothing is pushed. User decisions: the author email on the commits, the first push, the PR to develop (one PR or a chain) and the license. Then the next feature from docs/scope-and-roadmap.md.",
   "review": {
     "mode": "on (default, unset)",
     "assessed_tier": "medium",
@@ -223,6 +237,28 @@
       "review_due": false,
       "review_due_reason": "under_budget",
       "outcome": "under budget; stays pending in the slice until a later commit reaches the budget"
+    },
+    "second_review": {
+      "candidate": "the single squashed commit of T7, assessed from develop",
+      "outcome": "granted by the user; approved and acknowledged",
+      "lineage": "review-3f9d44aece4af720",
+      "lens": "review-reliability",
+      "advisory_findings": [
+        {
+          "id": "R3-local-token-printed-on-failure",
+          "severity": "SUGGESTION",
+          "location": "skills/skills_test.go (failure message of TestSkillsAreAgentNeutral)",
+          "claim": "a failing run prints the matched token verbatim, including tokens from the private local list",
+          "status": "fixed in T8"
+        },
+        {
+          "id": "R3-stale-checked-loop-evidence",
+          "severity": "SUGGESTION",
+          "location": "odd/tasks/neutral-skills.json (top-level evidence)",
+          "claim": "the evidence still claimed checked-loop was unchanged since the verbatim import, which stopped being true in T6 and cited a commit no longer on the branch",
+          "status": "fixed in T8"
+        }
+      ]
     }
   },
   "open_points": [

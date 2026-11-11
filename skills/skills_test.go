@@ -122,6 +122,19 @@ func forbiddenTokenHits(content string, tokens []string) []tokenHit {
 	return hits
 }
 
+// describeHit returns the failure message for one hit. A token from the local
+// list is reported by its 1-based position in that list, never by its text, so
+// test output can be shared without publishing a private name. A token that is
+// in both lists is treated as local.
+func describeHit(hit tokenHit, local []string) string {
+	for i, token := range local {
+		if token == hit.Token {
+			return fmt.Sprintf("line %d contains local forbidden token #%d (see %s)", hit.Line, i+1, localTokensFile)
+		}
+	}
+	return fmt.Sprintf("line %d contains agent- or machine-specific token %q", hit.Line, hit.Token)
+}
+
 func readSkill(t *testing.T, dir string) string {
 	t.Helper()
 	raw, err := fs.ReadFile(FS, dir+"/SKILL.md")
@@ -281,6 +294,46 @@ func TestParseTokenList(t *testing.T) {
 	}
 }
 
+func TestDescribeHit(t *testing.T) {
+	local := []string{"example-project", "example-host", "cbm_"}
+
+	cases := []struct {
+		name       string
+		hit        tokenHit
+		want       string
+		mustNotSay string
+	}{
+		{
+			name: "public token is quoted",
+			hit:  tokenHit{Line: 4, Token: "--tool pi"},
+			want: `line 4 contains agent- or machine-specific token "--tool pi"`,
+		},
+		{
+			name:       "local token is replaced by its number",
+			hit:        tokenHit{Line: 9, Token: "example-host"},
+			want:       "line 9 contains local forbidden token #2 (see forbidden.local.txt)",
+			mustNotSay: "example-host",
+		},
+		{
+			name:       "token in both lists is treated as local",
+			hit:        tokenHit{Line: 1, Token: "cbm_"},
+			want:       "line 1 contains local forbidden token #3 (see forbidden.local.txt)",
+			mustNotSay: "cbm_",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := describeHit(tc.hit, local)
+			if got != tc.want {
+				t.Errorf("message = %q, want %q", got, tc.want)
+			}
+			if tc.mustNotSay != "" && strings.Contains(got, tc.mustNotSay) {
+				t.Errorf("message %q must not contain the local token", got)
+			}
+		})
+	}
+}
+
 func TestExpectedSkillsAreShipped(t *testing.T) {
 	shipped := map[string]bool{}
 	for _, dir := range skillDirs(t) {
@@ -328,14 +381,15 @@ func TestFrontmatterIsValidForEveryAgent(t *testing.T) {
 
 func TestSkillsAreAgentNeutral(t *testing.T) {
 	local := localTokens(t)
-	// Only the count is logged: the local tokens themselves stay private.
+	// The local tokens stay private: only their count is logged here, and a
+	// failure reports a local token by its number (see describeHit).
 	t.Logf("%d local tokens loaded from %s", len(local), localTokensFile)
 	tokens := append(append([]string{}, forbiddenTokens...), local...)
 
 	for _, dir := range skillDirs(t) {
 		t.Run(dir, func(t *testing.T) {
 			for _, hit := range forbiddenTokenHits(readSkill(t, dir), tokens) {
-				t.Errorf("line %d contains agent-, machine- or person-specific token %q", hit.Line, hit.Token)
+				t.Error(describeHit(hit, local))
 			}
 		})
 	}

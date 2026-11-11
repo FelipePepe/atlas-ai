@@ -1,0 +1,104 @@
+{
+  "feature": "cli-skeleton",
+  "objective": "Add the command structure of the atlas-ai binary, the Linux and Windows platform paths it owns, and CI that runs vet and tests on both platforms.",
+  "problem": "The repository has only the shipped skills and their contract test. Roadmap features 4 to 11 need a binary with commands, a place for atlas-ai's own state, and a CI that proves it works on Windows.",
+  "scope": [
+    "cmd/atlas-ai entry point",
+    "internal/cli dispatcher with help, version and paths commands (stdlib flag, no new dependencies)",
+    "internal/platform path resolver for linux and windows (home and state directory)",
+    "CI matrix ubuntu-latest and windows-latest with go vet and go test",
+    "README and roadmap updates"
+  ],
+  "constraints": [
+    "Conventional commits, no AI attribution",
+    "Never build after changes; verification uses go test and go vet only",
+    "No new dependencies: stdlib flag only (user decision of 2026-11-11)",
+    "Agent configuration paths are out of scope; they belong to agent-adapters-skills and are Unverified on Windows",
+    "Empty or relative environment values are rejected; no fallback to the current directory",
+    "No secrets in any file"
+  ],
+  "tdd": {
+    "mode": "on",
+    "source": "explicit user approval of the cli-skeleton plan (2026-11-11), same mode as neutral-skills",
+    "runner": "go test ./..."
+  },
+  "route": "mixed; per-task route recorded on each task",
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "Platform paths: internal/platform/paths_test.go first (linux with and without XDG_STATE_HOME, relative XDG ignored, empty HOME error; windows USERPROFILE and LOCALAPPDATA, missing variables error; unsupported GOOS error), observe RED, then internal/platform/paths.go with Paths{Home, StateDir} and Resolve(goos, getenv).",
+      "tool": "Write",
+      "args": { "query": "go test ./internal/platform/..." },
+      "reason": "A pure resolver keeps both platforms testable on one host. Rejecting empty and relative values is the secure default. Route: delegated writer (writer trigger, T1 and T2 touch 2+ non-trivial files).",
+      "mode": "standard",
+      "status": "pending",
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "Command structure: internal/cli/cli_test.go first (no args and help print usage exit 0; version output; paths output with a fake getenv; unknown command and bad flag print to stderr exit 2; paths error exit 1), observe RED, then internal/cli/cli.go and cmd/atlas-ai/main.go.",
+      "tool": "Write",
+      "args": { "query": "go test ./internal/cli/..." },
+      "reason": "Stdlib flag per user decision. Injected writers and environment make the CLI testable without building. Route: delegated writer (same writer as T1).",
+      "mode": "standard",
+      "status": "pending",
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T3",
+      "step": 3,
+      "description": "CI on both platforms: .github/workflows/ci.yml gets a matrix of ubuntu-latest and windows-latest and a go vet step before go test. Keep read-only permissions and persist-credentials false.",
+      "tool": "Edit",
+      "args": { "query": ".github/workflows/ci.yml" },
+      "reason": "The roadmap requires tests on Linux and Windows. The skills contract test already normalizes CRLF. Route: inline (single mechanical file).",
+      "mode": "standard",
+      "status": "pending",
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T4",
+      "step": 4,
+      "description": "Docs: README.md (status, usage of help, version and paths, layout) and docs/scope-and-roadmap.md (row 3 state; state-directory locations recorded as Proposed).",
+      "tool": "Edit",
+      "args": { "query": "README.md; docs/scope-and-roadmap.md" },
+      "reason": "Docs travel with the behavior. The state directory is a new recommendation, so it is Proposed, not Decided. Route: inline (docs only).",
+      "mode": "standard",
+      "status": "pending",
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T5",
+      "step": 5,
+      "description": "Delivery: gofmt, go vet and go test clean; then, only after asking the user, push feature/cli-skeleton and open a pull request.",
+      "tool": "Bash",
+      "args": { "query": "gofmt -l . ; go vet ./... ; go test -count=1 ./..." },
+      "reason": "Push and pull request are outward-facing and stay the user's decision.",
+      "mode": "standard",
+      "status": "pending",
+      "evidence": "",
+      "commit": ""
+    }
+  ],
+  "acceptance": [
+    "go test ./... fails after the T1 and T2 tests are written and passes after their implementation",
+    "go vet ./... and gofmt -l . report nothing",
+    "paths and version behavior verified through cli.Run tests with a fake getenv, no go build or go run",
+    "CI passes on ubuntu-latest and windows-latest in the pull request",
+    "go.mod gains no new dependency"
+  ],
+  "delivery": {
+    "strategy": "ask-on-risk",
+    "forecast_authored_lines": 350,
+    "running_authored_lines": 0,
+    "note": "Branch is based on feature/license-ci because pull request #3 was not merged when work started (user decision of 2026-11-11). Rebase onto develop once #3 is merged."
+  },
+  "progress": "Plan approved. Branch feature/cli-skeleton created from feature/license-ci. No task started.",
+  "evidence": [],
+  "next_step": "T1: write internal/platform/paths_test.go and observe RED."
+}

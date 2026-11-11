@@ -17,5 +17,6 @@ func main() {
 		GOOS:    runtime.GOOS,
 		GOARCH:  runtime.GOARCH,
 		Getenv:  os.Getenv,
+		Stdin:   os.Stdin,
 	}))
 }

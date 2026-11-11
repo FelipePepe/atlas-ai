@@ -62,7 +62,7 @@ The table summarizes each component. The status column refers to the facts in th
 | RTK | Installs the token-saving command proxy | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | Headroom | Installs a token-saving tool | Decided (component); Proposed (optional) | Currently installed through `uv`. |
 | Logbook | Installs the session logbook script | Decided | Shipped as a Python script embedded in the binary; requires Python. See below. |
-| Atlas vault | Provides a local knowledge vault | Decided (component, local per user, path asked with a default); Proposed (`ATLAS_VAULT` variable); Open (default path, layout) | See below. |
+| Atlas vault | Provides a local knowledge vault | Decided (component, local per user, path asked with a default, English names); Proposed (`ATLAS_VAULT` variable); Open (default path, exact names) | See below. |
 | Hooks | Writes hooks per agent through adapters | Decided (component); Unverified (files and formats) | |
 | MCP server configuration | Writes MCP configuration per agent through adapters | Decided (component); Unverified (files and formats) | |
 | Private-only items | Not installed | Proposed | Excluded from the public installer. |
@@ -111,7 +111,11 @@ The script has not been imported yet. Its current default logbook directory is s
 
 **Open.** Which default path the installer offers, and how the chosen path is made available to the agents on each platform.
 
-**Open.** Which folder names the vault uses internally. The existing skills assume some Spanish folder names.
+**Decided.** The vault uses English folder and field names. Spanish names and names configurable per language at install time were considered and not chosen; the second would have required generating the skills from templates, against the decision to copy them unchanged.
+
+Consequence: the skills shipped by `neutral-skills` still assume some Spanish folder and field names and have to be updated. That change is not done yet.
+
+**Open.** The exact list of English folder and field names.
 
 ### Hooks and MCP server configuration
 
@@ -162,7 +166,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 **Open**
 
 1. Which default vault path the installer offers, and how the chosen path is made available to the agents on each platform.
-2. The folder names the vault uses internally.
+2. The exact list of English folder and field names the vault uses.
 3. What the detected project stack drives.
 4. Which workflow the installer ships: ODD, SDD, or both.
 

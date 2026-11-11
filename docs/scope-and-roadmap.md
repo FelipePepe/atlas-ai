@@ -62,7 +62,7 @@ The table summarizes each component. The status column refers to the facts in th
 | RTK | Installs the token-saving command proxy | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | Headroom | Installs a token-saving tool | Decided (component); Proposed (optional) | Currently installed through `uv`. |
 | Logbook | Installs the session logbook script | Decided | Shipped as a Python script embedded in the binary; requires Python. See below. |
-| Atlas vault | Provides a local knowledge vault | Decided (component); Proposed (location); Open (resolution, layout) | See below. |
+| Atlas vault | Provides a local knowledge vault | Decided (component, local per user); Proposed (`ATLAS_VAULT` variable); Open (resolution, layout) | See below. |
 | Hooks | Writes hooks per agent through adapters | Decided (component); Unverified (files and formats) | |
 | MCP server configuration | Writes MCP configuration per agent through adapters | Decided (component); Unverified (files and formats) | |
 | Private-only items | Not installed | Proposed | Excluded from the public installer. |
@@ -103,7 +103,9 @@ The script has not been imported yet. Its current default logbook directory is s
 
 **Decided.** The Atlas vault is a component.
 
-**Proposed.** Each user gets a local Obsidian vault, located through an `ATLAS_VAULT` environment variable. This was stated to the owner but never confirmed.
+**Decided.** Each user has a local Obsidian vault on their own machine. The installer does not depend on any private MCP gateway.
+
+**Proposed.** The vault is located through an `ATLAS_VAULT` environment variable. The shipped skills already refer to the vault by that name.
 
 **Open.** How `ATLAS_VAULT` is resolved: a prompt, a default location, or detection of an existing vault.
 

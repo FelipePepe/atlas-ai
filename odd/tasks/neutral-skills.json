@@ -195,7 +195,7 @@
     "go test -count=1 ./... -> ok after T6",
     "go test -count=1 ./... -> ok after T8"
   ],
-  "mirror": "pending (Engram ambiguous_project from the session cwd)",
+  "mirror": "synced 2026-11-11: Engram project atlas-ai, topic odd/neutral-skills/tasks, full document",
   "next_step": "The public GitHub repository exists and is empty; nothing is pushed. The author email is settled (GitHub noreply, applied to all commits). User decisions: the first push, the PR to develop (one PR or a chain) and the license. Then the next feature from docs/scope-and-roadmap.md.",
   "review": {
     "mode": "on (default, unset)",

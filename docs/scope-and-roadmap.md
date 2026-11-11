@@ -61,7 +61,7 @@ The table summarizes each component. The status column refers to the facts in th
 | cbm (codebase-memory-mcp) | Installs the code knowledge graph tool and registers it with each agent | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | RTK | Installs the token-saving command proxy | Decided (component); Proposed (installation); Unverified (Windows) | See below. |
 | Headroom | Installs a token-saving tool | Decided (component); Proposed (optional) | Currently installed through `uv`. |
-| Logbook | Installs the session logbook script | Decided (component, form, Python prerequisite); Open (script location) | Shipped as a Python script. See below. |
+| Logbook | Installs the session logbook script | Decided | Shipped as a Python script embedded in the binary; requires Python. See below. |
 | Atlas vault | Provides a local knowledge vault | Decided (component); Proposed (location); Open (resolution, layout) | See below. |
 | Hooks | Writes hooks per agent through adapters | Decided (component); Unverified (files and formats) | |
 | MCP server configuration | Writes MCP configuration per agent through adapters | Decided (component); Unverified (files and formats) | |
@@ -95,7 +95,9 @@ Consequences of this decision: Python becomes a prerequisite of the logbook comp
 
 **Decided.** On a machine without Python the installer stops and asks the user to install it. It does not install Python itself and does not skip the logbook silently.
 
-**Open.** Where the script lives: in this repository or in a repository of its own.
+**Decided.** The script lives in this repository and is embedded in the binary, as the skills are. The installer downloads nothing for this component.
+
+The script has not been imported yet. Its current default logbook directory is specific to one machine and has to be made neutral when it is imported, under the same rule the skills follow.
 
 ### Atlas vault
 
@@ -155,24 +157,23 @@ This list consolidates every Open and Unverified item above, followed by three f
 
 **Open**
 
-1. Logbook: where the script lives, in this repository or in one of its own.
-2. How `ATLAS_VAULT` is resolved: prompt, default location, or existing vault detection.
-3. The folder names the vault uses internally.
-4. What the detected project stack drives.
-5. Which workflow the installer ships: ODD, SDD, or both.
+1. How `ATLAS_VAULT` is resolved: prompt, default location, or existing vault detection.
+2. The folder names the vault uses internally.
+3. What the detected project stack drives.
+4. Which workflow the installer ships: ODD, SDD, or both.
 
 **Unverified**
 
-6. Whether Engram, cbm and RTK are each available for Windows.
-7. The exact files and formats for hooks and MCP server configuration in each agent.
-8. Whether Claude Code can switch to a provider other than Claude for a subagent.
-9. Whether GitHub Copilot CLI supports a model per phase.
+5. Whether Engram, cbm and RTK are each available for Windows.
+6. The exact files and formats for hooks and MCP server configuration in each agent.
+7. Whether Claude Code can switch to a provider other than Claude for a subagent.
+8. Whether GitHub Copilot CLI supports a model per phase.
 
 **Further questions**
 
-10. Repository visibility: public or private.
-11. License.
-12. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
+9. Repository visibility: public or private.
+10. License.
+11. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
 
 ## 8. Roadmap
 

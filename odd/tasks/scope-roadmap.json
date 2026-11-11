@@ -1,0 +1,79 @@
+{
+  "feature": "scope-roadmap",
+  "objective": "Record in the repository what atlas-ai is, what has been decided, what is only proposed, what is still open, and the order of the next features.",
+  "problem": "The design decisions exist only in conversation history, a memory file outside the repository and logbook entries. Later features have no written base to start from.",
+  "scope": {
+    "in": [
+      "docs/scope-and-roadmap.md: purpose, supported agents, distribution, security principles, components, behavior features, open questions, roadmap",
+      "README.md: one line linking the document"
+    ],
+    "out": [
+      "Any installer code",
+      "Resolving the open questions",
+      "Creating the GitHub repository, pushing, opening a pull request"
+    ]
+  },
+  "constraints": [
+    "English, neutral professional wording",
+    "Every statement carries a status: Decided (confirmed by the user), Proposed (recommendation awaiting the user), Open (no recommendation yet) or Unverified (not checked against documentation)",
+    "Nothing proposed is written as decided",
+    "No personal hosts, machine paths or private project names in the document",
+    "Branch feature/scope-roadmap from develop; never commit to main or develop"
+  ],
+  "tdd": {
+    "mode": "not-applicable",
+    "source": "this feature adds documentation only; the project default (TDD on) has no behavior to drive here",
+    "runner": "go test ./..."
+  },
+  "route": {
+    "selected": "delegated direct",
+    "evidence": "User instruction: use a Sonnet subagent as the writer. The parent creates the branch and this document, reads the full result, runs the checks and commits."
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "Write docs/scope-and-roadmap.md from the approved outline and add a Documentation line to README.md linking it.",
+      "tool": "Agent",
+      "args": { "query": "general-purpose subagent on Sonnet writes docs/scope-and-roadmap.md and one README.md line; no commits; returns gaps" },
+      "reason": "The single deliverable of the feature; statuses keep proposals from being read as decisions.",
+      "mode": "standard",
+      "route": "delegated (Sonnet writer), parent review",
+      "status": "pending",
+      "evidence": null,
+      "commit": null
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "Record results, the review assessment outcome and the next step in this document.",
+      "tool": "Edit",
+      "args": { "query": "odd/tasks/scope-roadmap.json" },
+      "reason": "Closes the feature with observed outcomes.",
+      "mode": "standard",
+      "route": "inline",
+      "status": "pending",
+      "evidence": null,
+      "commit": null
+    }
+  ],
+  "acceptance": [
+    "Every decision the user confirmed appears in the document with status Decided",
+    "No proposal, open question or unverified claim is labelled Decided",
+    "The document contains no personal host, machine path or private project name",
+    "The README link resolves to the document",
+    "go test -count=1 ./... result is recorded as observed"
+  ],
+  "delivery": {
+    "strategy": "ask-on-risk",
+    "forecast_authored_lines": 250,
+    "running_authored_lines": 0,
+    "slices": [],
+    "push_pr": "user decision, not part of this feature"
+  },
+  "progress": "0/2 tasks done",
+  "evidence": {
+    "engram_mirror": "pending: memory writes from this session fail with ambiguous_project; topic odd/scope-roadmap/tasks not yet written"
+  },
+  "next_step": "T1"
+}

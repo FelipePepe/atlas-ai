@@ -84,7 +84,7 @@
   },
   "progress": "2/2 tasks done",
   "evidence": {
-    "engram_mirror": "pending: memory writes from this session fail with ambiguous_project; topic odd/scope-roadmap/tasks not yet written"
+    "engram_mirror": "synced 2026-11-11: Engram project atlas-ai, topic odd/scope-roadmap/tasks, full document"
   },
   "next_step": "Owner reviews the Proposed and Open items in docs/scope-and-roadmap.md; push and pull request to develop are the owner's decision"
 }

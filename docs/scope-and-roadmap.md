@@ -71,7 +71,7 @@ The table summarizes each component. The status column refers to the facts in th
 
 ### Skills
 
-**Decided.** Skills are embedded in the binary and copied unchanged to each agent's skills directory. There is one agent-neutral text per skill. The first three skills, `session-start`, `session-end` and `checked-loop`, are shipped by the `neutral-skills` feature, which is complete but not yet merged.
+**Decided.** Skills are embedded in the binary and copied unchanged to each agent's skills directory. There is one agent-neutral text per skill. The first three skills, `session-start`, `session-end` and `checked-loop`, are shipped by the `neutral-skills` feature.
 
 ### Engram, cbm and RTK
 
@@ -161,6 +161,8 @@ Consequence: this needs skills and rules that are specific to a stack. None exis
 
 **Decided.** The installer backs up, and can restore, everything it modifies.
 
+**Proposed.** atlas-ai keeps its own state, including backups, in a per-user state directory: `$XDG_STATE_HOME/atlas-ai` (default `$HOME/.local/state/atlas-ai`) on Linux and `%LOCALAPPDATA%\atlas-ai` on Windows. The `cli-skeleton` feature resolves these paths; `backup-restore` decides what goes inside.
+
 ### Workflow shipped
 
 **Decided.** The installer ships the organic task-driven workflow (ODD) only. A spec-driven workflow (SDD) is not part of v1; it may be added later.
@@ -210,9 +212,9 @@ One guiding rule: backup and restore comes before any feature that writes to a u
 
 | # | Feature | Goal | Depends on | State |
 |---|---|---|---|---|
-| 1 | `neutral-skills` | Agent-neutral skills and their contract test | - | Done, awaiting merge |
-| 2 | `scope-roadmap` | This document | - | In progress |
-| 3 | `cli-skeleton` | Command structure, platform paths for Linux and Windows, CI running tests on both | - | Not started |
+| 1 | `neutral-skills` | Agent-neutral skills and their contract test | - | Done |
+| 2 | `scope-roadmap` | This document | - | Done |
+| 3 | `cli-skeleton` | Command structure, platform paths for Linux and Windows, CI running tests on both | - | In progress |
 | 4 | `backup-restore` | Back up and restore every file the installer may modify | 3 | Not started |
 | 5 | `agent-adapters-skills` | Install the embedded skills into the three agents | 1, 3, 4 | Not started |
 | 6 | `mcp-config` | Register MCP servers per agent | 3, 4 | Not started |

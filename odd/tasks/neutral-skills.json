@@ -178,12 +178,17 @@
     "strategy": "ask-on-risk",
     "forecast_authored_lines": 300,
     "running_authored_lines": 600,
-    "note": "Verbatim skill imports (634 lines, T2) are not authored lines. Running count about 600 on the feature branch (roughly 190 of them this document), over the ~400 planning heuristic; the user has not been asked for a chain strategy yet because no remote or pull request exists. Push and PR are the user's decision.",
+    "note": "Verbatim skill imports (634 lines, T2) are not authored lines. Running count about 600 on the feature branch (roughly 190 of them this document), over the ~400 planning heuristic; the user asked for the first push and for pull requests to develop on 2026-11-11, and the feature was delivered as a single pull request (#1, 1,368 added lines, about 640 of them skill text and about 280 this document) without a chain.",
     "slices": [
       {
-        "pr": "not created",
+        "pr": "#1 https://github.com/FelipePepe/atlas-ai/pull/1 (feature/neutral-skills -> develop, opened 2026-11-11, not merged)",
         "commits": [
-          "one commit on develop: feat(skills): add agent-neutral skills with contract test"
+          "a271c19 feat(skills): add agent-neutral skills with contract test",
+          "a1c7384 fix(skills): keep local forbidden tokens out of test output",
+          "7c3b2fb docs(adr): add ADR 0001 for agent-neutral skills",
+          "c53afe9 docs(odd): update commit references after history rewrite",
+          "f2f24b7 docs(odd): record Engram mirror sync for neutral-skills",
+          "the commit that carries this record (docs(odd): record pull request for neutral-skills)"
         ],
         "history_note": "The branch was developed as ten work-unit commits, one or more per task. Before the first push they were squashed into one (T7) because an early commit imported the original skills verbatim, personal data included. The commit hashes recorded on tasks T1 to T6 refer to that unpublished history. This is a deliberate exception to one commit per task. On 2026-11-11 the local backup ref that held that history was deleted and its objects pruned, so the hashes a92a2a9, fe6ff14, 3d716d5, 419af68, a53efac, 73ee874 and 403d2b4 no longer resolve anywhere. The same day every commit on every branch was rewritten to use the GitHub noreply author and committer email; contents are unchanged (identical trees), but hashes changed: 812b9c1 became 49ed4b0, 9094027 became a271c19 and 70409a7 became a1c7384."
       }
@@ -196,7 +201,7 @@
     "go test -count=1 ./... -> ok after T8"
   ],
   "mirror": "synced 2026-11-11: Engram project atlas-ai, topic odd/neutral-skills/tasks, full document",
-  "next_step": "The public GitHub repository exists and is empty; nothing is pushed. The author email is settled (GitHub noreply, applied to all commits). User decisions: the first push, the PR to develop (one PR or a chain) and the license. Then the next feature from docs/scope-and-roadmap.md.",
+  "next_step": "All four branches are pushed and pull request #1 to develop is open, not merged. User decisions: review and merge of #1 (it and #2 both edit README.md, so the second to merge may need a conflict resolution), the license, and CI. Then the next feature from docs/scope-and-roadmap.md.",
   "review": {
     "mode": "on (default, unset)",
     "assessed_tier": "medium",

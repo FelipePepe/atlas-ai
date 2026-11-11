@@ -62,9 +62,9 @@
       },
       "reason": "User decision on edited files; backing up before restore follows the principle of backing up before every write. Route: delegated writer.",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "RED: undefined Plan/PlanEntry/Action (build failed). GREEN: 15 restore tests pass. Parent re-run: gofmt clean, go vet clean, go test -count=1 ./... 103 passed in 5 packages, go.mod/go.sum unchanged. Decisions: pre-restore set committed after applying (so undo needs no --force); all blobs verified before any write; no-op restore creates no set. Route: delegated writer.",
+      "commit": "9bbadfe"
     },
     {
       "id": "T4",
@@ -130,7 +130,7 @@
     ],
     "note": "Chosen by the user on 2026-11-12 because the forecast exceeds about 400 authored lines. Pull requests #3 and #4 are still open, so merge order is #3, #4, slice A, slice B. The work-unit-commits and chained-pr skills are not installed (unavailable); the chain is managed by hand."
   },
-  "progress": "T1-T2 done (slice A complete, not pushed). T3-T5 pending on branch feature/backup-restore-cli.",
+  "progress": "T1-T3 done. T4 (CLI) and T5 (docs, delivery) pending on feature/backup-restore-cli. README and roadmap edits drafted, uncommitted.",
   "evidence": [],
-  "next_step": "T3: create feature/backup-restore-cli from feature/backup-restore and write the restore tests (RED). Slice A push and PR wait for the user."
+  "next_step": "T4: CLI commands backups and restore (tests first)."
 }

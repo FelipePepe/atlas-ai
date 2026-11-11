@@ -149,7 +149,11 @@ Feasibility differs per agent:
 
 **Decided** as in scope.
 
-**Open.** What the detected stack drives, for example which skills or rules get enabled.
+**Decided.** The detected stack drives which skills and rules get enabled. Only reporting the stack, without enabling anything, was considered and not chosen.
+
+Consequence: this needs skills and rules that are specific to a stack. None exist yet; the three shipped skills do not depend on the stack. Until some exist, detection has nothing to enable.
+
+**Open.** Which stacks are detected, and which skills and rules each one enables.
 
 ### Automatic backup and restore
 
@@ -181,7 +185,7 @@ This list consolidates every Open and Unverified item above, followed by three f
 
 1. Which default vault path the installer offers, and how the chosen path is made available to the agents on each platform.
 2. The exact list of English folder and field names the vault uses.
-3. What the detected project stack drives.
+3. Which stacks are detected, and which skills and rules each one enables.
 4. Which concrete model each phase tier maps to in each agent, and whether the user can override the mapping at install time.
 
 **Unverified**
@@ -214,7 +218,7 @@ One guiding rule: backup and restore comes before any feature that writes to a u
 | 7 | `component-installers` | Download, verify and install Engram, cbm, RTK, Headroom and the logbook | 3, 4 | Not started |
 | 8 | `hooks-and-rules` | Hooks, global instructions and the persona | 3, 4 | Not started |
 | 9 | `model-per-phase` | Model per phase across the supported agents | 3, 4 | Not started |
-| 10 | `stack-detection` | Detect the project stack | 3 | Not started |
+| 10 | `stack-detection` | Detect the project stack and enable the skills and rules for it | 3, 4, 5, 8 | Not started |
 | 11 | `release-workflow` | Published binaries with checksums | 3 | Not started |
 
-Features 5 to 9 depend on `backup-restore` because each of them writes to a user's configuration.
+Features 5 to 10 depend on `backup-restore` because each of them writes to a user's configuration.

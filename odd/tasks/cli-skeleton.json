@@ -63,7 +63,7 @@
       "reason": "The roadmap requires tests on Linux and Windows. The skills contract test already normalizes CRLF. Route: inline (single mechanical file).",
       "mode": "standard",
       "status": "done",
-      "evidence": "ci.yml parses; matrix ubuntu-latest and windows-latest, vet step before test. Real run pending in the pull request. Route: inline.",
+      "evidence": "ci.yml parses; matrix ubuntu-latest and windows-latest, vet step before test. Pull request #4 CI: go test (ubuntu-latest) pass 21s, go test (windows-latest) pass 39s. Route: inline.",
       "commit": "2d1bc4f"
     },
     {
@@ -90,9 +90,9 @@
       },
       "reason": "Push and pull request are outward-facing and stay the user's decision.",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "Pushed feature/cli-skeleton after the user approved; pull request #4 to develop opened. Final local checks before push: gofmt clean, go vet clean, go test -count=1 ./... 54 passed. Route: inline.",
+      "commit": "n/a (push and pull request only)"
     }
   ],
   "acceptance": [
@@ -108,9 +108,11 @@
     "running_authored_lines": 521,
     "note": "Branch is based on feature/license-ci because pull request #3 was not merged when work started (user decision of 2026-11-11). Rebase onto develop once #3 is merged."
   },
-  "progress": "T1-T4 done. T5 (delivery) pending the user decision to push and open the pull request.",
+  "progress": "T1-T5 done. Pull request #4 open to develop; CI green on ubuntu-latest and windows-latest. Based on feature/license-ci (pull request #3, still open when #4 was created).",
   "evidence": [
-    "Mode of every task is standard; checked mode was not used (see note in progress)."
+    "Mode of every task is standard; checked mode was not used.",
+    "Pull request #4: https://github.com/FelipePepe/atlas-ai/pull/4",
+    "CI run 43116561136: ubuntu-latest pass, windows-latest pass"
   ],
-  "next_step": "T5: ask the user, then push feature/cli-skeleton and open a pull request to develop (base is feature/license-ci until #3 is merged)."
+  "next_step": "User reviews and merges #3 first, then #4. Next roadmap feature: backup-restore (#4 in the roadmap table)."
 }

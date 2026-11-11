@@ -29,55 +29,65 @@
       "step": 1,
       "description": "Platform paths: internal/platform/paths_test.go first (linux with and without XDG_STATE_HOME, relative XDG ignored, empty HOME error; windows USERPROFILE and LOCALAPPDATA, missing variables error; unsupported GOOS error), observe RED, then internal/platform/paths.go with Paths{Home, StateDir} and Resolve(goos, getenv).",
       "tool": "Write",
-      "args": { "query": "go test ./internal/platform/..." },
+      "args": {
+        "query": "go test ./internal/platform/..."
+      },
       "reason": "A pure resolver keeps both platforms testable on one host. Rejecting empty and relative values is the secure default. Route: delegated writer (writer trigger, T1 and T2 touch 2+ non-trivial files).",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "RED: undefined Paths/Resolve (build failed). GREEN: go test ./internal/platform ok. Re-run by the parent: go vet clean, go test -count=1 ./... 54 passed in 4 packages, gofmt clean, go.mod/go.sum unchanged. Route: delegated writer.",
+      "commit": "1f225b6"
     },
     {
       "id": "T2",
       "step": 2,
       "description": "Command structure: internal/cli/cli_test.go first (no args and help print usage exit 0; version output; paths output with a fake getenv; unknown command and bad flag print to stderr exit 2; paths error exit 1), observe RED, then internal/cli/cli.go and cmd/atlas-ai/main.go.",
       "tool": "Write",
-      "args": { "query": "go test ./internal/cli/..." },
+      "args": {
+        "query": "go test ./internal/cli/..."
+      },
       "reason": "Stdlib flag per user decision. Injected writers and environment make the CLI testable without building. Route: delegated writer (same writer as T1).",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "RED: undefined Env/Run (build failed). GREEN: go test ./internal/cli ok. Same full-suite re-run by the parent. Route: delegated writer.",
+      "commit": "79c0cde"
     },
     {
       "id": "T3",
       "step": 3,
       "description": "CI on both platforms: .github/workflows/ci.yml gets a matrix of ubuntu-latest and windows-latest and a go vet step before go test. Keep read-only permissions and persist-credentials false.",
       "tool": "Edit",
-      "args": { "query": ".github/workflows/ci.yml" },
+      "args": {
+        "query": ".github/workflows/ci.yml"
+      },
       "reason": "The roadmap requires tests on Linux and Windows. The skills contract test already normalizes CRLF. Route: inline (single mechanical file).",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "ci.yml parses; matrix ubuntu-latest and windows-latest, vet step before test. Real run pending in the pull request. Route: inline.",
+      "commit": "2d1bc4f"
     },
     {
       "id": "T4",
       "step": 4,
       "description": "Docs: README.md (status, usage of help, version and paths, layout) and docs/scope-and-roadmap.md (row 3 state; state-directory locations recorded as Proposed).",
       "tool": "Edit",
-      "args": { "query": "README.md; docs/scope-and-roadmap.md" },
+      "args": {
+        "query": "README.md; docs/scope-and-roadmap.md"
+      },
       "reason": "Docs travel with the behavior. The state directory is a new recommendation, so it is Proposed, not Decided. Route: inline (docs only).",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "README usage, layout and paths table; roadmap row 3 in progress, rows 1-2 done, state directory recorded as Proposed. Route: inline.",
+      "commit": "e5fa412"
     },
     {
       "id": "T5",
       "step": 5,
       "description": "Delivery: gofmt, go vet and go test clean; then, only after asking the user, push feature/cli-skeleton and open a pull request.",
       "tool": "Bash",
-      "args": { "query": "gofmt -l . ; go vet ./... ; go test -count=1 ./..." },
+      "args": {
+        "query": "gofmt -l . ; go vet ./... ; go test -count=1 ./..."
+      },
       "reason": "Push and pull request are outward-facing and stay the user's decision.",
       "mode": "standard",
       "status": "pending",
@@ -95,10 +105,12 @@
   "delivery": {
     "strategy": "ask-on-risk",
     "forecast_authored_lines": 350,
-    "running_authored_lines": 0,
+    "running_authored_lines": 521,
     "note": "Branch is based on feature/license-ci because pull request #3 was not merged when work started (user decision of 2026-11-11). Rebase onto develop once #3 is merged."
   },
-  "progress": "Plan approved. Branch feature/cli-skeleton created from feature/license-ci. No task started.",
-  "evidence": [],
-  "next_step": "T1: write internal/platform/paths_test.go and observe RED."
+  "progress": "T1-T4 done. T5 (delivery) pending the user decision to push and open the pull request.",
+  "evidence": [
+    "Mode of every task is standard; checked mode was not used (see note in progress)."
+  ],
+  "next_step": "T5: ask the user, then push feature/cli-skeleton and open a pull request to develop (base is feature/license-ci until #3 is merged)."
 }

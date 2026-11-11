@@ -37,6 +37,8 @@ The only agent configuration locations verified so far are the personal skills d
 
 **Decided.** atlas-ai is distributed as a Go binary, built in GitHub Actions and published as GitHub releases with checksums.
 
+**Decided.** The repository is public.
+
 ## 4. Security principles
 
 **Decided.** Security comes first, by design and by default.
@@ -179,7 +181,7 @@ Consequence for the model-per-phase feature: its phases have to be defined in te
 
 ## 7. Open questions
 
-This list consolidates every Open and Unverified item above, followed by three further questions.
+This list consolidates every Open and Unverified item above, followed by two further questions.
 
 **Open**
 
@@ -197,9 +199,8 @@ This list consolidates every Open and Unverified item above, followed by three f
 
 **Further questions**
 
-9. Repository visibility: public or private.
-10. License.
-11. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
+9. License.
+10. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
 
 ## 8. Roadmap
 

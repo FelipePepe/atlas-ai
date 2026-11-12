@@ -19,6 +19,8 @@ Every statement below carries one of four status labels. Read the label before r
 
 **Decided.** It is a new project. It is inspired by gentle-ai but it is not a fork of it and not a layer on top of it.
 
+**Decided.** What users share is the way of working: the same workflow, skills, rules and guardrails, installed by the same binary. The data is not shared. The vault, the persistent memory, the logbook, the backups and any metrics stay on each user's machine. atlas-ai has no central server and no component depends on one.
+
 ## 2. Supported agents (v1)
 
 **Decided.** Version 1 supports three agents:
@@ -51,6 +53,7 @@ The only agent configuration locations verified so far are the personal skills d
 - Show what will change and ask before changing it.
 - No network access beyond the stated downloads.
 - Least privilege: no elevation unless a component requires it and the user agrees.
+- Never send metrics or any other user data off the machine.
 
 ## 5. Components
 
@@ -179,6 +182,30 @@ Consequence for the model-per-phase feature: its phases have to be defined in te
 
 **Open.** Which concrete model each tier maps to in each agent, and whether the user can override the mapping at install time.
 
+### Task refinement
+
+**Decided** as in scope. The cost of a vague task falls on the whole workflow, so the shared way of working includes a step that sharpens a task before anything is implemented.
+
+**Proposed.** An agent-neutral skill, `refine-task`, used in the Explore phase of ODD. It questions the task one point at a time, surfaces edge cases, and ends with acceptance criteria that go into the feature document.
+
+**Open.** Whether the step is mandatory for every substantial task or used on demand.
+
+### Guardrails
+
+**Decided** as in scope. The workflow includes guardrails that stop an agent from leaking secrets or touching what it should not.
+
+**Proposed.** Secret detection is implemented in the Go binary itself, so it downloads nothing. It runs from hooks before a commit or a write. Alongside it, rules limit the paths an agent may modify.
+
+**Open.** The detection rules, and whether a match blocks the action or only warns. Applying the guardrails also depends on the hook files and formats of each agent, which are Unverified (item 9 in section 7).
+
+### Local metrics
+
+**Decided** as in scope. Each user can measure their own work against their own baseline. Metrics are computed and stored locally, in the user's vault, and never leave the machine.
+
+**Proposed.** Derive them from data that already exists: the git history and the ODD feature documents. Examples are lead time per feature, tasks that failed or were blocked, and the outcome of reviews.
+
+**Open.** The exact list of metrics, and whether defects and test coverage are included, since they depend on the tooling of each project.
+
 ## 7. Open questions
 
 This list consolidates every Open and Unverified item above, followed by two further questions.
@@ -189,18 +216,21 @@ This list consolidates every Open and Unverified item above, followed by two fur
 2. The exact list of English folder and field names the vault uses.
 3. Which stacks are detected, and which skills and rules each one enables.
 4. Which concrete model each phase tier maps to in each agent, and whether the user can override the mapping at install time.
+5. Whether task refinement is mandatory for every substantial task or used on demand.
+6. The secret detection rules, and whether a match blocks or only warns.
+7. The exact list of local metrics, and whether defects and test coverage are included.
 
 **Unverified**
 
-5. Whether Engram, cbm and RTK are each available for Windows.
-6. The exact files and formats for hooks and MCP server configuration in each agent.
-7. Whether Claude Code can switch to a provider other than Claude for a subagent.
-8. Whether GitHub Copilot CLI supports a model per phase.
+8. Whether Engram, cbm and RTK are each available for Windows.
+9. The exact files and formats for hooks and MCP server configuration in each agent.
+10. Whether Claude Code can switch to a provider other than Claude for a subagent.
+11. Whether GitHub Copilot CLI supports a model per phase.
 
 **Further questions**
 
-9. License.
-10. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
+12. License.
+13. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
 
 ## 8. Roadmap
 
@@ -221,5 +251,8 @@ One guiding rule: backup and restore comes before any feature that writes to a u
 | 9 | `model-per-phase` | Model per phase across the supported agents | 3, 4 | Not started |
 | 10 | `stack-detection` | Detect the project stack and enable the skills and rules for it | 3, 4, 5, 8 | Not started |
 | 11 | `release-workflow` | Published binaries with checksums | 3 | Not started |
+| 12 | `task-refinement` | The `refine-task` skill for the ODD Explore phase | 1, 5 | Not started |
+| 13 | `guardrails` | Secret detection and path limits applied through hooks | 3, 4, 8 | Not started |
+| 14 | `local-metrics` | Metrics computed from git and ODD documents, stored in the user's vault | 3 | Not started |
 
-Features 5 to 10 depend on `backup-restore` because each of them writes to a user's configuration.
+Features 5 to 10 and 13 depend on `backup-restore` because each of them writes to a user's configuration. Feature 14 writes only to the user's vault, which also needs the vault path from open item 1 in section 7.

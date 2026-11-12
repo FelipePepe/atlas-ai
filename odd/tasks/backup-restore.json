@@ -1,0 +1,136 @@
+{
+  "feature": "backup-restore",
+  "objective": "Back up every file atlas-ai may modify before it is modified, and let the user list backups and restore them safely.",
+  "problem": "Roadmap features 5 to 10 write to a user's agent configuration. The security principles and the roadmap require a backup before every write and a way to restore, and none exists yet.",
+  "scope": [
+    "internal/backup: backup set format, writer API (Begin, Track, Commit), reading with validation, plan and restore with drift detection",
+    "CLI commands: atlas-ai backups, atlas-ai restore [--yes] [--force] <id>",
+    "README and roadmap updates"
+  ],
+  "constraints": [
+    "Conventional commits, no AI attribution",
+    "Never build after changes; verification uses go test and go vet only",
+    "No new dependencies (stdlib only)",
+    "Restore refuses files edited after install unless --force (user decision of 2026-11-12)",
+    "Every id read from the user or from disk is validated against a strict pattern; manifest paths must be absolute and blob names plain; symlinks and non-regular files are rejected",
+    "Backup directories are 0700 and files 0600; the manifest is written atomically",
+    "Restore asks before changing anything and aborts on anything but an explicit yes, including end of input",
+    "Tests use t.TempDir and a real filesystem; no secrets or machine-specific paths in any file"
+  ],
+  "tdd": {
+    "mode": "on",
+    "source": "explicit user approval of the backup-restore plan (2026-11-12), same mode as cli-skeleton",
+    "runner": "go test ./..."
+  },
+  "route": "mixed; per-task route recorded on each task",
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "Backup set and writer API: internal/backup/backup_test.go first (Begin creates a 0700 set with a valid id; Track copies an existing file with hash and mode; Track of a missing file records existed=false; Track rejects relative path, symlink and directory; duplicate Track is a no-op; manifest rewritten after each Track; Commit records after-hash and status complete), observe RED, then internal/backup/backup.go and manifest.go.",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/backup/..."
+      },
+      "reason": "Core format every later writer depends on. The atomic manifest keeps a crash state restorable. Route: delegated writer (writer trigger, 2+ non-trivial files).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED: undefined Store/Manifest/ValidID/StatusOpen (build failed). GREEN: 11 T1 tests pass. Parent re-run: gofmt clean, go vet clean, go test -count=1 ./... 88 passed in 5 packages, go.mod/go.sum unchanged. Route: delegated writer.",
+      "commit": "4f85fd5"
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "Reading and validation: tests first for List (newest first, malformed set reported) and Load (rejects bad id, traversal id, wrong version, relative entry path, bad blob name), then internal/backup/store.go. Slice A ends here.",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/backup/..."
+      },
+      "reason": "On-disk data is never trusted before it is validated. Route: delegated writer (same writer as T1).",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED: s.Load and s.List undefined (9 errors). GREEN: 21 backup tests pass. Same parent re-run. Beyond spec: Load also checks created as RFC3339, blob/existed consistency and 64-hex hashes; List reports stray entries. Route: delegated writer.",
+      "commit": "23294b1"
+    },
+    {
+      "id": "T3",
+      "step": 3,
+      "description": "Plan and restore (slice B, branch feature/backup-restore-cli): tests first for each Plan action (restore, delete, skip-unchanged, conflict, open-set conflicts), Restore with and without force, a pre-restore backup set, atomic write and restored mode, then internal/backup/restore.go.",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/backup/..."
+      },
+      "reason": "User decision on edited files; backing up before restore follows the principle of backing up before every write. Route: delegated writer.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED: undefined Plan/PlanEntry/Action (build failed). GREEN: 15 restore tests pass. Parent re-run: gofmt clean, go vet clean, go test -count=1 ./... 103 passed in 5 packages, go.mod/go.sum unchanged. Decisions: pre-restore set committed after applying (so undo needs no --force); all blobs verified before any write; no-op restore creates no set. Route: delegated writer.",
+      "commit": "9bbadfe"
+    },
+    {
+      "id": "T4",
+      "step": 4,
+      "description": "CLI: internal/cli/cli_test.go cases first (backups listing; restore usage errors; restore prints the plan and aborts on n and on end of input; --yes applies; conflicts exit 1; --force overwrites; invalid id exit 2), then internal/cli/cli.go (Env.Stdin, backups and restore, usage text) and cmd/atlas-ai/main.go (pass os.Stdin).",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/cli/..."
+      },
+      "reason": "Show what will change and ask before changing it. Reuses parse() and Env from cli-skeleton. Route: delegated writer.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED: env.Stdin undefined, then behavioural failures (unknown command backups/restore, abort paths). GREEN: 17 new CLI tests pass. Parent re-run: gofmt clean, go vet clean, go test -count=1 ./... 118 passed in 5 packages, go.mod/go.sum unchanged. Windows path of the CLI tests unverified locally (CI will run it). Route: delegated writer.",
+      "commit": "2776fb7"
+    },
+    {
+      "id": "T5",
+      "step": 5,
+      "description": "Docs and delivery: README.md (usage, backup layout, exit codes), docs/scope-and-roadmap.md (row 4 state), feature document and mirror, final gofmt, vet and test; then, only after asking the user, push each slice and open its pull request, and check CI on both platforms.",
+      "tool": "Edit",
+      "args": {
+        "query": "README.md; docs/scope-and-roadmap.md"
+      },
+      "reason": "Docs travel with the behavior. Push and pull requests are outward-facing and stay the user's decision. Route: inline.",
+      "mode": "standard",
+      "status": "pending",
+      "evidence": "Docs done: README (usage, backup layout, exit codes) and roadmap row 4 in progress, commit 8ac8d5e. Final local checks green. Still pending: user-approved push of slice A (feature/backup-restore) and slice B (feature/backup-restore-cli), pull requests, and CI on both platforms.",
+      "commit": "8ac8d5e"
+    }
+  ],
+  "acceptance": [
+    "go test ./... fails after each test file is written and passes after its implementation (RED then GREEN observed)",
+    "go vet ./... and gofmt -l . report nothing",
+    "End-to-end test: back up a file and an absent path, modify both, commit, restore; the original content returns and the new file is deleted; a file edited after the commit is a conflict and --force overwrites it",
+    "A traversal id such as ../../x is rejected before any filesystem access",
+    "CI passes on ubuntu-latest and windows-latest in both pull requests",
+    "go.mod gains no new dependency"
+  ],
+  "delivery": {
+    "strategy": "feature-branch-chain",
+    "forecast_authored_lines": 700,
+    "running_authored_lines": 2095,
+    "slices": [
+      {
+        "name": "A",
+        "branch": "feature/backup-restore",
+        "tasks": [
+          "T1",
+          "T2"
+        ],
+        "base": "feature/cli-skeleton"
+      },
+      {
+        "name": "B",
+        "branch": "feature/backup-restore-cli",
+        "tasks": [
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "base": "feature/backup-restore"
+      }
+    ],
+    "note": "Chosen by the user on 2026-11-12 because the forecast exceeds about 400 authored lines. Pull requests #3 and #4 are still open, so merge order is #3, #4, slice A, slice B. The work-unit-commits and chained-pr skills are not installed (unavailable); the chain is managed by hand."
+  },
+  "progress": "T1-T4 done and committed; T5 docs done. Nothing pushed. Slice A = feature/backup-restore (T1-T2), slice B = feature/backup-restore-cli (T3-T5).",
+  "evidence": [],
+  "next_step": "Ask the user to approve pushing slice A and slice B and opening their pull requests (A base feature/cli-skeleton, B base feature/backup-restore), then check CI on both platforms."
+}

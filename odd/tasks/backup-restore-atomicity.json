@@ -1,0 +1,111 @@
+{
+  "feature": "backup-restore-atomicity",
+  "objective": "A failed restore leaves the machine as it was before the restore and leaves no orphaned backup set. Only if the rollback itself fails does the set stay, recording the real state.",
+  "problem": "Review findings 5 and 6 of backup-restore. (5) applyOps stops at the first error and does not undo what it already applied, so a restore can leave files half old and half new. (6) A failed Track after Begin, or a failed Begin after its directory exists, leaves an open set that backups lists forever.",
+  "scope": [
+    "internal/backup/backup.go: Tx.Abort and cleanup in Begin",
+    "internal/backup/restore.go: Restore, applyOps returning the applied count, rollback helper",
+    "internal/backup/rollback_test.go: new tests",
+    "no manifest format change; confine checks stay"
+  ],
+  "constraints": [
+    "Code is written by pi with qwen3.8:latest, as the user asked; the parent only orchestrates, reviews the diff and runs the checks",
+    "pi runs locally and sends prompts to the Ollama host configured in ~/.pi/agent/models.json (192.168.1.60), which the user authorized",
+    "If pi cannot produce a correct change in 2 attempts for a task, stop and report instead of writing it in the parent",
+    "No AI attribution in commits; Conventional Commits",
+    "No push, no pull request: the user decides",
+    "About 400 authored changed lines per task is a planning heuristic only; do not cut tests or comments to fit it"
+  ],
+  "tdd": {
+    "mode": "on",
+    "source": "same mode the user approved for backup-restore; applied to these regressions",
+    "runner": "go test ./..."
+  },
+  "route": "delegated to pi (qwen3.8:latest); parent reviews diffs and runs gofmt, go vet and go test",
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "RED: internal/backup/rollback_test.go. Failure on the last of several ops rolls back the earlier ones (content and mode), restores a deleted file, leaves no backup set and an empty Restored list; Track failure leaves no open set; Begin failure after Mkdir leaves no directory; a failed rollback commits the set and reports the files.",
+      "tool": "Bash",
+      "args": {
+        "query": "pi -p --no-session --provider ollama --model qwen3.8:latest ..."
+      },
+      "reason": "Tests first so the fix is proven by observed RED then GREEN.",
+      "mode": "standard",
+      "status": "done",
+      "attempts": 1,
+      "evidence": "RED observed by parent: 3 new tests fail on assertions (no rollback, set left in the store), 86 pre-existing tests pass, gofmt clean. Route: delegated to pi (qwen3.8:latest), 1 attempt; parent read the test file. Not covered: Begin failure after Mkdir and a failed rollback (no seam to force them without changing the API).",
+      "commit": "9649c8e"
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "GREEN: Tx.Abort, cleanup in Begin, applyOps returning how many ops were applied, rollback helper, new Restore flow.",
+      "tool": "Bash",
+      "args": {
+        "query": "pi -p ...; go test -count=1 ./..."
+      },
+      "reason": "Smallest change that closes findings 5 and 6.",
+      "mode": "standard",
+      "status": "done",
+      "attempts": 2,
+      "evidence": "GREEN observed by parent: gofmt clean, go vet clean, go test -count=1 ./... 160 passed in 5 packages, go.mod/go.sum unchanged, tests untouched, confine checks unchanged. Route: delegated to pi, 2 attempts: attempt 1 compiled with one error (errors.Join with a variadic), attempt 2 broke a brace (abortErr out of scope). By the user's choice the parent fixed the last block by hand (about 5 lines in restore.go). A first pi call with shell and write tools was blocked by the permission classifier; the later calls ran with read and edit only.",
+      "commit": "9649c8e"
+    },
+    {
+      "id": "T3",
+      "step": 3,
+      "description": "Parent review of the full diff, one Conventional Commit, update of this document and its Engram mirror.",
+      "tool": "Bash",
+      "args": {
+        "query": "git diff; go test -count=1 ./..."
+      },
+      "reason": "A task is done only with observed evidence.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "Parent read the full diff of backup.go and restore.go against findings 5 and 6; single commit 9649c8e. Windows and macOS not run locally; the rollback tests skip on Windows and as root.",
+      "commit": "9649c8e"
+    }
+  ],
+  "acceptance": [
+    "A restore that fails midway restores the earlier files to their pre-restore content and mode and leaves no backup set",
+    "A Track or Begin failure leaves no open set or directory",
+    "If the rollback itself fails, the set is committed with the real state and the error lists the files",
+    "Existing tests pass unchanged; confine checks still apply; manifest format unchanged",
+    "gofmt and go vet clean; go test -count=1 ./... green"
+  ],
+  "delivery": {
+    "strategy": "feature-branch-chain",
+    "forecast_authored_lines": 400,
+    "running_authored_lines": 380,
+    "slices": [
+      {
+        "name": "fix",
+        "branch": "feature/backup-restore-cli",
+        "tasks": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "base": "feature/backup-restore"
+      }
+    ],
+    "note": "Committed on slice B after ae4376e. Push and pull requests remain the user's decision."
+  },
+  "pending_findings": [
+    "3 TOCTOU between plan, confirmation and apply",
+    "4 newest-first ordering by id string (same second)",
+    "7 --force over a symlink or directory announces an overwrite and then aborts (cleanup of orphans comes from this feature)",
+    "8 drift ignores file mode",
+    "9 manifest mode is not validated",
+    "10 weak manifest validation (duplicate paths, existed without hash, Windows C:foo and UNC)",
+    "11-15 lower findings (Created vs id, fsync, Windows case, Commit on a directory, CLI prompt with only conflicts)"
+  ],
+  "progress": "T1-T3 done. Findings 5 and 6 closed in 9649c8e.",
+  "evidence": [
+    "9649c8e fix(backup): roll back a failed restore and remove orphaned sets",
+    "go vet clean; go test -count=1 ./... 160 passed"
+  ],
+  "next_step": "User decides push and pull requests (slice A feature/backup-restore base feature/cli-skeleton; slice B base feature/backup-restore). Pending findings: 3 TOCTOU, 4 ordering, 7 --force over symlink, 8-15 lower. Untested branches: Begin cleanup and a failed rollback."
+}

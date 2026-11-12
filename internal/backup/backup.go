@@ -18,6 +18,9 @@ import (
 type Store struct {
 	// Root is the directory that contains one subdirectory per set.
 	Root string
+	// Home is the user's home directory; only files under it may be tracked
+	// or restored. It must be absolute.
+	Home string
 	// Now returns the current time; time.Now is used when nil.
 	Now func() time.Time
 }
@@ -32,6 +35,7 @@ func (s *Store) now() time.Time {
 // Tx is an open backup transaction. It is not safe for concurrent use.
 type Tx struct {
 	dir      string
+	home     string
 	manifest Manifest
 	tracked  map[string]bool
 }
@@ -42,6 +46,9 @@ func (t *Tx) ID() string { return t.manifest.ID }
 // Begin creates a new backup set labelled label and writes its initial
 // manifest with status "open".
 func (s *Store) Begin(label string) (*Tx, error) {
+	if err := checkHome(s.Home); err != nil {
+		return nil, err
+	}
 	now := s.now().UTC()
 	if err := os.MkdirAll(s.Root, 0o700); err != nil {
 		return nil, fmt.Errorf("create backup root: %w", err)
@@ -67,10 +74,13 @@ func (s *Store) Begin(label string) (*Tx, error) {
 		return nil, errors.New("create backup set: could not find a free id")
 	}
 	if err := os.Mkdir(filepath.Join(dir, blobsDir), 0o700); err != nil {
+		// Begin must not leave a half-created set behind.
+		_ = os.RemoveAll(dir)
 		return nil, fmt.Errorf("create backup files directory: %w", err)
 	}
 	t := &Tx{
-		dir: dir,
+		dir:  dir,
+		home: filepath.Clean(s.Home),
 		manifest: Manifest{
 			Version: ManifestVersion,
 			ID:      id,
@@ -82,6 +92,7 @@ func (s *Store) Begin(label string) (*Tx, error) {
 		tracked: map[string]bool{},
 	}
 	if err := t.writeManifest(); err != nil {
+		_ = os.RemoveAll(dir)
 		return nil, err
 	}
 	return t, nil
@@ -106,6 +117,11 @@ func (t *Tx) Track(path string) error {
 		return fmt.Errorf("cannot track %q: path must be absolute", path)
 	}
 	path = filepath.Clean(path)
+	// Confine before touching the filesystem so nothing outside home is
+	// read, copied or recorded.
+	if err := confine(t.home, path); err != nil {
+		return fmt.Errorf("cannot track %q: %w", path, err)
+	}
 	if t.tracked[path] {
 		return nil
 	}
@@ -138,6 +154,19 @@ func (t *Tx) Track(path string) error {
 	t.manifest.Entries = append(t.manifest.Entries, entry)
 	t.tracked[path] = true
 	return t.writeManifest()
+}
+
+// Abort discards an open set whose changes were never applied, or whose
+// changes were fully undone. The set directory is removed entirely, so the
+// set no longer appears in Store.List.
+func (t *Tx) Abort() error {
+	if t.manifest.Status != StatusOpen {
+		return errors.New("backup set is already committed")
+	}
+	if err := os.RemoveAll(t.dir); err != nil {
+		return fmt.Errorf("remove backup set: %w", err)
+	}
+	return nil
 }
 
 // Commit records the state of every tracked file after the change and marks

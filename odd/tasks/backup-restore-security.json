@@ -1,0 +1,110 @@
+{
+  "feature": "backup-restore-security",
+  "objective": "Restore and tracking only act on regular files whose real location lies under the user's home. Anything else fails closed before any write.",
+  "problem": "Code review of backup-restore found two high findings. (1) validate only requires an absolute path, so a planted manifest can make restore write or delete any file the user can reach (restore.go:223,229; store.go:63-66). (2) inspect, removeFile and Track only Lstat the last component, so a symlinked parent directory redirects writes outside home (restore.go:61-77,258,261-286; backup.go:114).",
+  "scope": [
+    "internal/backup: Store.Home (required), confine(), checks in validate, Restore, writeAtomic, removeFile and Tx.Track",
+    "internal/cli/backup.go: pass Home from platform paths",
+    "tests for both findings and adaptation of existing Store{} literals",
+    "no manifest format change (ManifestVersion stays)"
+  ],
+  "constraints": [
+    "Security first, by design and by default: an empty or relative Home is an error, not a fallback",
+    "Local work only: no remote host, no pi/qwen delegation (remote use was not authorized)",
+    "No AI attribution in commits; Conventional Commits",
+    "No push, no pull request: the user decides",
+    "About 400 authored changed lines per task is a planning heuristic only; do not cut tests or comments to fit it"
+  ],
+  "tdd": {
+    "mode": "on",
+    "source": "same mode the user approved for backup-restore and cli-skeleton; applied here because these are security regressions",
+    "runner": "go test ./..."
+  },
+  "route": "delegated writer (writer trigger: 2+ non-trivial files); parent reviews the diff and runs the checks",
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "RED: regression tests in internal/backup and internal/cli. Manifest path outside home rejected by Load, Plan and Restore with nothing written; symlinked parent outside home rejected on restore, delete and Track; empty or relative Home rejected; confine unit tests (.., Rel, symlinked ancestors). Existing Store{} literals get Home set to their temp dir.",
+      "tool": "Agent",
+      "args": {
+        "query": "go test ./internal/backup/... ./internal/cli/..."
+      },
+      "reason": "Proves the tests catch the flaw before it is fixed.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "RED observed by parent: new security tests fail on assertions (stub confine allows everything; Store.Home stub only), pre-existing tests pass; gofmt clean. Route: delegated local writer (writer trigger, 2+ non-trivial files).",
+      "commit": "ae4376e"
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "GREEN: add internal/backup/confine.go and wire Store.Home and Tx.home; check in validate, Restore (all ops before Begin), writeAtomic, removeFile and Track; CLI passes Home.",
+      "tool": "Agent",
+      "args": {
+        "query": "go test ./..."
+      },
+      "reason": "Smallest change that closes findings 1 and 2 without touching the manifest format.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "GREEN observed by parent: go vet clean, go test -count=1 ./... 157 passed in 5 packages, gofmt clean, go.mod/go.sum unchanged, ManifestVersion unchanged. Route: delegated local writer; parent read the full diff of backup.go, store.go, restore.go, cli/backup.go and confine.go.",
+      "commit": "ae4376e"
+    },
+    {
+      "id": "T3",
+      "step": 3,
+      "description": "Parent review of the diff against findings 1 and 2, full test run, one Conventional Commit, update of this document and its Engram mirror.",
+      "tool": "Bash",
+      "args": {
+        "query": "git diff; go test ./..."
+      },
+      "reason": "A task is done only with observed evidence.",
+      "mode": "standard",
+      "status": "done",
+      "evidence": "Parent review against findings 1 and 2 done; single commit ae4376e (10 files, 621 insertions, 25 deletions, mostly tests). Windows and macOS not run locally; CI matrix covers Windows when the pull request is opened. Manual end-to-end run not done: the planted-manifest case is covered by TestRestorePlantedManifestOutsideHome in internal/cli.",
+      "commit": "ae4376e"
+    }
+  ],
+  "acceptance": [
+    "A manifest whose path is outside Home makes Load, Plan and Restore fail, and no file is created, changed or deleted",
+    "A symlinked parent directory that resolves outside Home is refused for restore, delete and Track",
+    "Empty or relative Home is refused",
+    "Existing behavior inside Home is unchanged (existing tests pass)",
+    "gofmt and go vet clean; go test ./... green"
+  ],
+  "delivery": {
+    "strategy": "feature-branch-chain",
+    "forecast_authored_lines": 350,
+    "running_authored_lines": 646,
+    "slices": [
+      {
+        "name": "fix",
+        "branch": "feature/backup-restore-cli",
+        "tasks": [
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "base": "feature/backup-restore"
+      }
+    ],
+    "note": "The fix touches files that belong to slice A (backup.go, store.go) and slice B (restore.go, cli). It is committed on slice B as one extra commit to avoid rewriting history; the user may move it to slice A before opening the pull requests."
+  },
+  "pending_findings": [
+    "3 TOCTOU between plan, confirmation and apply",
+    "4 newest-first ordering by id string (same second)",
+    "5 partial restore without rollback",
+    "6 orphaned open sets after a failed Track or Begin",
+    "7 --force over a symlink or directory announces an overwrite and then aborts",
+    "8 drift ignores file mode",
+    "9 manifest mode is not validated",
+    "10 weak manifest validation (duplicate paths, existed without hash, Windows C:foo and UNC)",
+    "11-15 lower findings (Created vs id, fsync, Windows case, Commit on a directory, CLI prompt with only conflicts)"
+  ],
+  "progress": "T1-T3 done. Findings 1 and 2 closed in commit ae4376e.",
+  "evidence": [
+    "ae4376e fix(backup): confine restore and tracking to the user home",
+    "go vet clean; go test -count=1 ./... 157 passed"
+  ],
+  "next_step": "User decides: push feature/backup-restore-cli and open the pull requests (slice A feature/backup-restore base feature/cli-skeleton; slice B base feature/backup-restore). The fix is committed on slice B though it touches slice A files. Pending findings 3-15 stay open; next most valuable: 5 and 6 (partial restore and orphaned sets), then 3 (TOCTOU)."
+}

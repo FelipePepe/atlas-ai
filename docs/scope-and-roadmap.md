@@ -245,7 +245,7 @@ One guiding rule: backup and restore comes before any feature that writes to a u
 | 1 | `neutral-skills` | Agent-neutral skills and their contract test | - | Done |
 | 2 | `scope-roadmap` | This document | - | Done |
 | 3 | `cli-skeleton` | Command structure, platform paths for Linux and Windows, CI running tests on both | - | In progress |
-| 4 | `backup-restore` | Back up and restore every file the installer may modify | 3 | Not started |
+| 4 | `backup-restore` | Back up and restore every file the installer may modify | 3 | In progress |
 | 5 | `agent-adapters-skills` | Install the embedded skills into the three agents | 1, 3, 4 | Not started |
 | 6 | `mcp-config` | Register MCP servers per agent | 3, 4 | Not started |
 | 7 | `component-installers` | Download, verify and install Engram, cbm, RTK, Headroom and the logbook | 3, 4 | Not started |

@@ -62,9 +62,9 @@
       },
       "reason": "User decision on edited files; backing up before restore follows the principle of backing up before every write. Route: delegated writer.",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "RED: undefined Plan/PlanEntry/Action (build failed). GREEN: 15 restore tests pass. Parent re-run: gofmt clean, go vet clean, go test -count=1 ./... 103 passed in 5 packages, go.mod/go.sum unchanged. Decisions: pre-restore set committed after applying (so undo needs no --force); all blobs verified before any write; no-op restore creates no set. Route: delegated writer.",
+      "commit": "9bbadfe"
     },
     {
       "id": "T4",
@@ -76,9 +76,9 @@
       },
       "reason": "Show what will change and ask before changing it. Reuses parse() and Env from cli-skeleton. Route: delegated writer.",
       "mode": "standard",
-      "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "status": "done",
+      "evidence": "RED: env.Stdin undefined, then behavioural failures (unknown command backups/restore, abort paths). GREEN: 17 new CLI tests pass. Parent re-run: gofmt clean, go vet clean, go test -count=1 ./... 118 passed in 5 packages, go.mod/go.sum unchanged. Windows path of the CLI tests unverified locally (CI will run it). Route: delegated writer.",
+      "commit": "2776fb7"
     },
     {
       "id": "T5",
@@ -91,8 +91,8 @@
       "reason": "Docs travel with the behavior. Push and pull requests are outward-facing and stay the user's decision. Route: inline.",
       "mode": "standard",
       "status": "pending",
-      "evidence": "",
-      "commit": ""
+      "evidence": "Docs done: README (usage, backup layout, exit codes) and roadmap row 4 in progress, commit 8ac8d5e. Final local checks green. Still pending: user-approved push of slice A (feature/backup-restore) and slice B (feature/backup-restore-cli), pull requests, and CI on both platforms.",
+      "commit": "8ac8d5e"
     }
   ],
   "acceptance": [
@@ -106,7 +106,7 @@
   "delivery": {
     "strategy": "feature-branch-chain",
     "forecast_authored_lines": 700,
-    "running_authored_lines": 933,
+    "running_authored_lines": 2095,
     "slices": [
       {
         "name": "A",
@@ -130,7 +130,7 @@
     ],
     "note": "Chosen by the user on 2026-11-12 because the forecast exceeds about 400 authored lines. Pull requests #3 and #4 are still open, so merge order is #3, #4, slice A, slice B. The work-unit-commits and chained-pr skills are not installed (unavailable); the chain is managed by hand."
   },
-  "progress": "T1-T2 done (slice A complete, not pushed). T3-T5 pending on branch feature/backup-restore-cli.",
+  "progress": "T1-T4 done and committed; T5 docs done. Nothing pushed. Slice A = feature/backup-restore (T1-T2), slice B = feature/backup-restore-cli (T3-T5).",
   "evidence": [],
-  "next_step": "T3: create feature/backup-restore-cli from feature/backup-restore and write the restore tests (RED). Slice A push and PR wait for the user."
+  "next_step": "Ask the user to approve pushing slice A and slice B and opening their pull requests (A base feature/cli-skeleton, B base feature/backup-restore), then check CI on both platforms."
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 // Action is what a restore would do with one tracked file.
@@ -149,7 +150,16 @@ type op struct {
 // file is changed, the current state of every file about to change is saved
 // in a new backup set (Result.BackupID), so a restore can itself be undone.
 // Every blob is verified against its recorded hash before anything is
-// written. On failure it returns the partial Result together with the error.
+// written.
+//
+// If the restore fails midway it is rolled back: the files it already
+// changed are put back to their pre-restore content and mode, in reverse
+// order, the backup set is discarded and the Result reports nothing. A
+// machine left half old and half new is worse than the state the restore
+// found, so a restore either completes fully or does not happen at all.
+// Only when the rollback itself cannot complete is the set committed, so it
+// records the state that really remains; the error then names the files
+// that could not be put back.
 func (s *Store) Restore(id string, force bool) (*Result, error) {
 	m, err := s.Load(id)
 	if err != nil {
@@ -204,17 +214,87 @@ func (s *Store) Restore(id string, force bool) (*Result, error) {
 	res.BackupID = tx.ID()
 	for _, o := range ops {
 		if err := tx.Track(o.entry.Path); err != nil {
+			// Nothing was written yet, and the open set must not outlive the
+			// failed restore.
+			_ = tx.Abort()
+			res.BackupID = ""
 			return res, fmt.Errorf("back up current state: %w", err)
 		}
 	}
 
-	applyErr := applyOps(s.Home, ops, res)
-	// Commit even after a failed apply so the set records what really
-	// happened, which keeps the partial restore undoable.
-	if err := tx.Commit(); err != nil && applyErr == nil {
-		applyErr = fmt.Errorf("finish restore backup set: %w", err)
+	// The state each op will roll back to is read and verified before a
+	// single file is touched: that way nothing is changed if the set turned
+	// out to be unreadable, and the rollback works from these snapshots.
+	type state struct {
+		data    []byte
+		mode    os.FileMode
+		existed bool
 	}
-	return res, applyErr
+	states := make([]state, len(ops))
+	for i, o := range ops {
+		data, mode, existed, err := tx.prior(o.entry.Path)
+		if err != nil {
+			_ = tx.Abort()
+			res.BackupID = ""
+			return res, err
+		}
+		states[i] = state{data: data, mode: mode, existed: existed}
+	}
+
+	n, applyErr := applyOps(s.Home, ops, res)
+	if applyErr == nil {
+		// Commit the set so this restore itself can be undone through
+		// Result.BackupID.
+		if err := tx.Commit(); err != nil {
+			return res, fmt.Errorf("finish restore backup set: %w", err)
+		}
+		return res, nil
+	}
+
+	// The restore failed midway: put back, in reverse order, every file it
+	// already changed, so the machine ends where the restore found it.
+	var (
+		rollbackErrs []error
+		badPaths     []string
+	)
+	for i := n - 1; i >= 0; i-- {
+		st := states[i]
+		path := ops[i].entry.Path
+		var rerr error
+		if st.existed {
+			rerr = writeAtomic(s.Home, path, st.data, st.mode)
+		} else {
+			rerr = removeFile(s.Home, path)
+		}
+		if rerr == nil {
+			continue
+		}
+		rollbackErrs = append(rollbackErrs, rerr)
+		badPaths = append(badPaths, path)
+	}
+
+	if len(rollbackErrs) == 0 {
+		abortErr := tx.Abort()
+		if abortErr == nil {
+			// The restore is fully undone and its set discarded: to the
+			// outside world it never happened.
+			res.Restored = nil
+			res.Deleted = nil
+			res.BackupID = ""
+			return res, fmt.Errorf("restore failed and was rolled back: %w", applyErr)
+		}
+		// The set could not be discarded: fall through and commit it below,
+		// so the state it holds is not lost.
+		rollbackErrs = append(rollbackErrs, abortErr)
+	}
+
+	// The rollback is incomplete, so commit the set: it records the state
+	// that really remains and stays undoable, instead of being thrown away.
+	if commitErr := tx.Commit(); commitErr != nil {
+		rollbackErrs = append(rollbackErrs, commitErr)
+	}
+	return res, fmt.Errorf("restore failed and could not be fully rolled back (files: %s; set %s records the current state): %w",
+		strings.Join(badPaths, ", "), res.BackupID, errors.Join(append([]error{applyErr}, rollbackErrs...)...))
 }
 
 // readBlob returns the original content of e, verified against its recorded
@@ -230,21 +310,53 @@ func (s *Store) readBlob(id string, e Entry) ([]byte, error) {
 	return data, nil
 }
 
-func applyOps(home string, ops []op, res *Result) error {
+// prior returns the state of path as tx recorded it when tracking: the
+// original content, its mode, and whether the file existed at all. The
+// content is read from the set's blob and verified against its recorded
+// hash, so a rollback can never restore corrupted data.
+func (t *Tx) prior(path string) (data []byte, mode os.FileMode, existed bool, err error) {
+	path = filepath.Clean(path)
+	for _, e := range t.manifest.Entries {
+		if e.Path != path {
+			continue
+		}
+		if !e.Existed {
+			return nil, 0, false, nil
+		}
+		data, err = os.ReadFile(filepath.Join(t.dir, blobsDir, e.Blob))
+		if err != nil {
+			return nil, 0, false, err
+		}
+		if hashBytes(data) != e.BeforeSHA256 {
+			return nil, 0, false, fmt.Errorf("backup of %q is corrupted: hash mismatch", path)
+		}
+		return data, os.FileMode(e.Mode), true, nil
+	}
+	return nil, 0, false, fmt.Errorf("no backup entry for %q", path)
+}
+
+// applyOps applies ops in order and stops at the first failure. It returns
+// how many ops were fully applied, and the op that failed is not counted,
+// so the caller can roll exactly those back in reverse order. It keeps
+// appending to res.Restored and res.Deleted as it goes.
+func applyOps(home string, ops []op, res *Result) (int, error) {
+	applied := 0
 	for _, o := range ops {
 		if o.delete {
 			if err := removeFile(home, o.entry.Path); err != nil {
-				return err
+				return applied, err
 			}
 			res.Deleted = append(res.Deleted, o.entry.Path)
+			applied++
 			continue
 		}
 		if err := writeAtomic(home, o.entry.Path, o.data, os.FileMode(o.entry.Mode)); err != nil {
-			return err
+			return applied, err
 		}
 		res.Restored = append(res.Restored, o.entry.Path)
+		applied++
 	}
-	return nil
+	return applied, nil
 }
 
 func removeFile(home, path string) error {

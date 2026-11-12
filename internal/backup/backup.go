@@ -74,6 +74,8 @@ func (s *Store) Begin(label string) (*Tx, error) {
 		return nil, errors.New("create backup set: could not find a free id")
 	}
 	if err := os.Mkdir(filepath.Join(dir, blobsDir), 0o700); err != nil {
+		// Begin must not leave a half-created set behind.
+		_ = os.RemoveAll(dir)
 		return nil, fmt.Errorf("create backup files directory: %w", err)
 	}
 	t := &Tx{
@@ -90,6 +92,7 @@ func (s *Store) Begin(label string) (*Tx, error) {
 		tracked: map[string]bool{},
 	}
 	if err := t.writeManifest(); err != nil {
+		_ = os.RemoveAll(dir)
 		return nil, err
 	}
 	return t, nil
@@ -151,6 +154,19 @@ func (t *Tx) Track(path string) error {
 	t.manifest.Entries = append(t.manifest.Entries, entry)
 	t.tracked[path] = true
 	return t.writeManifest()
+}
+
+// Abort discards an open set whose changes were never applied, or whose
+// changes were fully undone. The set directory is removed entirely, so the
+// set no longer appears in Store.List.
+func (t *Tx) Abort() error {
+	if t.manifest.Status != StatusOpen {
+		return errors.New("backup set is already committed")
+	}
+	if err := os.RemoveAll(t.dir); err != nil {
+		return fmt.Errorf("remove backup set: %w", err)
+	}
+	return nil
 }
 
 // Commit records the state of every tracked file after the change and marks

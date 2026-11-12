@@ -41,13 +41,16 @@ func (s *Store) Load(id string) (*Manifest, error) {
 	if err := json.Unmarshal(data, &m); err != nil {
 		return nil, fmt.Errorf("parse manifest of %s: %w", id, err)
 	}
-	if err := validate(&m, id); err != nil {
+	if err := checkHome(s.Home); err != nil {
+		return nil, err
+	}
+	if err := validate(&m, id, s.Home); err != nil {
 		return nil, fmt.Errorf("invalid manifest of %s: %w", id, err)
 	}
 	return &m, nil
 }
 
-func validate(m *Manifest, id string) error {
+func validate(m *Manifest, id, home string) error {
 	if m.Version != ManifestVersion {
 		return fmt.Errorf("unsupported version %d", m.Version)
 	}
@@ -61,8 +64,8 @@ func validate(m *Manifest, id string) error {
 		return fmt.Errorf("bad created time: %w", err)
 	}
 	for i, e := range m.Entries {
-		if !filepath.IsAbs(e.Path) {
-			return fmt.Errorf("entry %d: path %q is not absolute", i, e.Path)
+		if err := confineLexical(home, e.Path); err != nil {
+			return fmt.Errorf("entry %d: %w", i, err)
 		}
 		if e.Existed {
 			if !blobPattern.MatchString(e.Blob) {

@@ -83,6 +83,11 @@ func (s *Store) Plan(id string) (*Plan, error) {
 	if err != nil {
 		return nil, err
 	}
+	for i, e := range m.Entries {
+		if err := confine(s.Home, e.Path); err != nil {
+			return nil, fmt.Errorf("entry %d: %w", i, err)
+		}
+	}
 	p := &Plan{ID: m.ID, Status: m.Status, Entries: make([]PlanEntry, 0, len(m.Entries))}
 	for _, e := range m.Entries {
 		p.Entries = append(p.Entries, planEntry(m.Status, e))
@@ -183,6 +188,14 @@ func (s *Store) Restore(id string, force bool) (*Result, error) {
 		return res, nil
 	}
 
+	// Confine every target before anything is written, so a bad entry
+	// aborts the whole restore with no new backup set.
+	for _, o := range ops {
+		if err := confine(s.Home, o.entry.Path); err != nil {
+			return res, err
+		}
+	}
+
 	// Save the state about to be replaced so this restore can be undone.
 	tx, err := s.Begin("restore " + id)
 	if err != nil {
@@ -195,7 +208,7 @@ func (s *Store) Restore(id string, force bool) (*Result, error) {
 		}
 	}
 
-	applyErr := applyOps(ops, res)
+	applyErr := applyOps(s.Home, ops, res)
 	// Commit even after a failed apply so the set records what really
 	// happened, which keeps the partial restore undoable.
 	if err := tx.Commit(); err != nil && applyErr == nil {
@@ -217,16 +230,16 @@ func (s *Store) readBlob(id string, e Entry) ([]byte, error) {
 	return data, nil
 }
 
-func applyOps(ops []op, res *Result) error {
+func applyOps(home string, ops []op, res *Result) error {
 	for _, o := range ops {
 		if o.delete {
-			if err := removeFile(o.entry.Path); err != nil {
+			if err := removeFile(home, o.entry.Path); err != nil {
 				return err
 			}
 			res.Deleted = append(res.Deleted, o.entry.Path)
 			continue
 		}
-		if err := writeAtomic(o.entry.Path, o.data, os.FileMode(o.entry.Mode)); err != nil {
+		if err := writeAtomic(home, o.entry.Path, o.data, os.FileMode(o.entry.Mode)); err != nil {
 			return err
 		}
 		res.Restored = append(res.Restored, o.entry.Path)
@@ -234,7 +247,10 @@ func applyOps(ops []op, res *Result) error {
 	return nil
 }
 
-func removeFile(path string) error {
+func removeFile(home, path string) error {
+	if err := confine(home, path); err != nil {
+		return fmt.Errorf("delete %q: %w", path, err)
+	}
 	info, err := os.Lstat(path)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil
@@ -253,7 +269,10 @@ func removeFile(path string) error {
 
 // writeAtomic replaces path with data through a temporary file in the same
 // directory, so a failure never leaves a half-written target.
-func writeAtomic(path string, data []byte, mode os.FileMode) error {
+func writeAtomic(home, path string, data []byte, mode os.FileMode) error {
+	if err := confine(home, path); err != nil {
+		return fmt.Errorf("restore %q: %w", path, err)
+	}
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("restore %q: %w", path, err)

@@ -18,6 +18,9 @@ import (
 type Store struct {
 	// Root is the directory that contains one subdirectory per set.
 	Root string
+	// Home is the user's home directory; only files under it may be tracked
+	// or restored. It must be absolute.
+	Home string
 	// Now returns the current time; time.Now is used when nil.
 	Now func() time.Time
 }
@@ -32,6 +35,7 @@ func (s *Store) now() time.Time {
 // Tx is an open backup transaction. It is not safe for concurrent use.
 type Tx struct {
 	dir      string
+	home     string
 	manifest Manifest
 	tracked  map[string]bool
 }
@@ -42,6 +46,9 @@ func (t *Tx) ID() string { return t.manifest.ID }
 // Begin creates a new backup set labelled label and writes its initial
 // manifest with status "open".
 func (s *Store) Begin(label string) (*Tx, error) {
+	if err := checkHome(s.Home); err != nil {
+		return nil, err
+	}
 	now := s.now().UTC()
 	if err := os.MkdirAll(s.Root, 0o700); err != nil {
 		return nil, fmt.Errorf("create backup root: %w", err)
@@ -70,7 +77,8 @@ func (s *Store) Begin(label string) (*Tx, error) {
 		return nil, fmt.Errorf("create backup files directory: %w", err)
 	}
 	t := &Tx{
-		dir: dir,
+		dir:  dir,
+		home: filepath.Clean(s.Home),
 		manifest: Manifest{
 			Version: ManifestVersion,
 			ID:      id,
@@ -106,6 +114,11 @@ func (t *Tx) Track(path string) error {
 		return fmt.Errorf("cannot track %q: path must be absolute", path)
 	}
 	path = filepath.Clean(path)
+	// Confine before touching the filesystem so nothing outside home is
+	// read, copied or recorded.
+	if err := confine(t.home, path); err != nil {
+		return fmt.Errorf("cannot track %q: %w", path, err)
+	}
 	if t.tracked[path] {
 		return nil
 	}

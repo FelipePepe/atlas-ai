@@ -2,6 +2,9 @@ package cli
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -150,7 +153,7 @@ func backupEnv(t *testing.T) (Env, *backup.Store) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return env, &backup.Store{Root: filepath.Join(p.StateDir, "backups")}
+	return env, &backup.Store{Root: filepath.Join(p.StateDir, "backups"), Home: p.Home}
 }
 
 func writeFile(t *testing.T, path, content string) {
@@ -173,7 +176,11 @@ func readFile(t *testing.T, path string) string {
 // and created extra (absent before). It returns the set id and both paths.
 func commitSet(t *testing.T, st *backup.Store, at time.Time, label string) (id, target, extra string) {
 	t.Helper()
-	dir := t.TempDir()
+	// The tracked files must lie under the store's home.
+	dir, err := os.MkdirTemp(st.Home, "work")
+	if err != nil {
+		t.Fatal(err)
+	}
 	target = filepath.Join(dir, "target.txt")
 	extra = filepath.Join(dir, "extra.txt")
 	writeFile(t, target, "orig")
@@ -432,5 +439,66 @@ func TestRestoreUnknownSet(t *testing.T) {
 	code, _, errs := runIn(t, env, nil, "restore", "20260101T000000Z-abcd")
 	if code != 1 || errs == "" {
 		t.Errorf("code %d err %q", code, errs)
+	}
+}
+
+func TestBackupStoreHomeComesFromPlatform(t *testing.T) {
+	env, _ := backupEnv(t)
+	p, err := platform.Resolve(env.GOOS, env.Getenv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := backupStore(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Home == "" || st.Home != p.Home {
+		t.Errorf("Home = %q, want the platform home %q", st.Home, p.Home)
+	}
+}
+
+// TestRestorePlantedManifestOutsideHome plants a self-consistent set whose
+// entry points outside the user's home: restore must fail and leave it alone.
+func TestRestorePlantedManifestOutsideHome(t *testing.T) {
+	for _, flags := range [][]string{{"--yes"}, {"--yes", "--force"}} {
+		env, st := backupEnv(t)
+		outside := filepath.Join(t.TempDir(), "victim.txt")
+		writeFile(t, outside, "new")
+		sum := func(s string) string { h := sha256.Sum256([]byte(s)); return hex.EncodeToString(h[:]) }
+
+		const id = "20261112T080000Z-aaaa"
+		dir := filepath.Join(st.Root, id)
+		if err := os.MkdirAll(filepath.Join(dir, "files"), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		writeFile(t, filepath.Join(dir, "files", "0"), "orig")
+		m := backup.Manifest{
+			Version: backup.ManifestVersion, ID: id, Label: "planted", Created: "2026-11-12T10:30:45Z",
+			Status: backup.StatusComplete,
+			Entries: []backup.Entry{{
+				Path: outside, Existed: true, Blob: "0", Mode: 0o600,
+				BeforeSHA256: sum("orig"), AfterSHA256: sum("new"), AfterExists: true,
+			}},
+		}
+		data, err := json.Marshal(m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		writeFile(t, filepath.Join(dir, "manifest.json"), string(data))
+
+		code, _, errs := run(t, env, append(append([]string{"restore"}, flags...), id)...)
+		if code == 0 {
+			t.Errorf("%v: exit 0, want non-zero (stderr %q)", flags, errs)
+		}
+		if got := readFile(t, outside); got != "new" {
+			t.Errorf("%v: outside file = %q, want it untouched (new)", flags, got)
+		}
+		items, err := os.ReadDir(st.Root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(items) != 1 {
+			t.Errorf("%v: %d entries in the backup root, want only the planted set", flags, len(items))
+		}
 	}
 }

@@ -15,8 +15,12 @@ var fixedTime = time.Date(2026, 11, 12, 10, 30, 45, 0, time.UTC)
 
 func newTestStore(t *testing.T) *Store {
 	t.Helper()
+	base := t.TempDir()
 	return &Store{
-		Root: filepath.Join(t.TempDir(), "backups"),
+		Root: filepath.Join(base, "backups"),
+		// Home is the parent shared by every t.TempDir() of this test, so
+		// files tracked in other temp dirs of the test lie under it.
+		Home: filepath.Dir(base),
 		Now:  func() time.Time { return fixedTime },
 	}
 }

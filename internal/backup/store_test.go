@@ -25,8 +25,8 @@ func writeSet(t *testing.T, s *Store, id string, m Manifest) {
 	}
 }
 
-func validManifest(id string) Manifest {
-	abs := filepath.Join(os.TempDir(), "target.json")
+func validManifest(home, id string) Manifest {
+	abs := filepath.Join(home, "target.json")
 	return Manifest{
 		Version: 1, ID: id, Label: "test", Created: "2026-11-12T10:30:45Z", Status: StatusComplete,
 		Entries: []Entry{{
@@ -64,7 +64,7 @@ func TestLoadRoundTrip(t *testing.T) {
 
 func TestLoadAcceptsEntryWithoutBlob(t *testing.T) {
 	s := newTestStore(t)
-	m := validManifest(idNew)
+	m := validManifest(s.Home, idNew)
 	m.Entries[0].Existed = false
 	m.Entries[0].Blob = ""
 	m.Entries[0].BeforeSHA256 = ""
@@ -77,7 +77,7 @@ func TestLoadAcceptsEntryWithoutBlob(t *testing.T) {
 func TestLoadRejectsBadIDs(t *testing.T) {
 	// The root does not exist: a rejected id must fail before any
 	// filesystem access, so the error must be about the id.
-	s := &Store{Root: filepath.Join(t.TempDir(), "missing")}
+	s := &Store{Root: filepath.Join(t.TempDir(), "missing"), Home: t.TempDir()}
 	for _, id := range []string{
 		"", "abc", "../../x", "..", ".", idNew + "/..", "20261112T080000Z-CCCC",
 		"20261112T080000Z-ccc", "20261112T080000Z-cccc ", "x" + idNew,
@@ -136,7 +136,7 @@ func TestLoadValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := newTestStore(t)
-			m := validManifest(idNew)
+			m := validManifest(s.Home, idNew)
 			tt.mutate(&m)
 			writeSet(t, s, idNew, m)
 			_, err := s.Load(idNew)
@@ -152,9 +152,9 @@ func TestLoadValidation(t *testing.T) {
 
 func TestListNewestFirst(t *testing.T) {
 	s := newTestStore(t)
-	writeSet(t, s, idMid, validManifest(idMid))
-	writeSet(t, s, idNew, validManifest(idNew))
-	writeSet(t, s, idOld, validManifest(idOld))
+	writeSet(t, s, idMid, validManifest(s.Home, idMid))
+	writeSet(t, s, idNew, validManifest(s.Home, idNew))
+	writeSet(t, s, idOld, validManifest(s.Home, idOld))
 
 	got, err := s.List()
 	if err != nil {
@@ -177,7 +177,7 @@ func TestListNewestFirst(t *testing.T) {
 
 func TestListReportsMalformedSets(t *testing.T) {
 	s := newTestStore(t)
-	writeSet(t, s, idNew, validManifest(idNew))
+	writeSet(t, s, idNew, validManifest(s.Home, idNew))
 	// Bad directory name.
 	if err := os.MkdirAll(filepath.Join(s.Root, "not-an-id"), 0o700); err != nil {
 		t.Fatal(err)
@@ -187,7 +187,7 @@ func TestListReportsMalformedSets(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Valid name, invalid manifest content.
-	bad := validManifest(idMid)
+	bad := validManifest(s.Home, idMid)
 	bad.Version = 9
 	writeSet(t, s, idMid, bad)
 

@@ -19,7 +19,7 @@ func backupStore(env Env) (*backup.Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &backup.Store{Root: filepath.Join(p.StateDir, "backups")}, nil
+	return &backup.Store{Root: filepath.Join(p.StateDir, "backups"), Home: p.Home}, nil
 }
 
 func runBackups(args []string, stdout, stderr io.Writer, env Env) int {

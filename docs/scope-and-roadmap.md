@@ -208,9 +208,26 @@ Consequence for the model-per-phase feature: its phases have to be defined in te
 
 **Open.** The exact list of metrics, and whether defects and test coverage are included, since they depend on the tooling of each project.
 
+### Software factory kit (lights on, lights out)
+
+**Proposed.** atlas-ai does not run a software factory: it has no server and no component depends on one (section 1). It can install an optional kit into the user's own repository that supports two modes of working. In *lights on* a person decides and approves each step and agents execute bounded tasks; this is the ODD workflow atlas-ai already ships. In *lights out* a pull request is merged without human review because the change is safe by construction.
+
+**Proposed.** Lights out is out of scope for v1 and is never on by default. The kit would carry a guard script, issue templates, `CODEOWNERS` and an auto-merge workflow that is shipped disabled. The installer shows what it will write and asks first, under the security principles in section 4.
+
+The proposal is modelled on a public demonstration repository, `0GiS0/tesla-roadster-demo`, whose files were read for this document. What that repository does, as read in its files:
+
+- Lights out covers only documentation and small pull requests from the GitHub Copilot cloud agent for issues labelled `lights-out`.
+- A pure script, `lights-out-guard.sh`, decides eligibility from three JSON inputs and uses no network. Its limits are 150 changed lines and 10 files, a list of protected paths, an allowed set of area labels and a low-complexity label. It has its own test.
+- The required status checks remain the last barrier. The workflow runs on `pull_request_target`, so the script always comes from `main`.
+- It needs two personal access tokens and, for the cloud agent, turning off the approval of workflow runs. Its own documentation calls that an accepted risk.
+
+**Unverified.** How the demonstration works beyond its files: only the video description and the repository were read; the video itself was not transcribed.
+
+**Open.** Whether the kit targets GitHub only, since its agent and Actions are GitHub features, and whether it can support the Copilot cloud agent, which is not among the three agents of v1. Whether the installer may create the tokens or only document them, given that atlas-ai must never write or print secrets.
+
 ## 7. Open questions
 
-This list consolidates every Open and Unverified item above, followed by two further questions.
+This list consolidates every Open and Unverified item above, followed by four further questions.
 
 **Open**
 
@@ -233,6 +250,8 @@ This list consolidates every Open and Unverified item above, followed by two fur
 
 12. License.
 13. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
+14. Whether the software factory kit targets GitHub only, and whether it supports the Copilot cloud agent.
+15. Whether the installer may create the access tokens the lights-out workflows need, or only document them.
 
 ## 8. Roadmap
 
@@ -256,5 +275,6 @@ One guiding rule: backup and restore comes before any feature that writes to a u
 | 12 | `task-refinement` | The `refine-task` skill for the ODD Explore phase | 1, 5 | Not started |
 | 13 | `guardrails` | Secret detection and path limits applied through hooks | 3, 4, 8 | Not started |
 | 14 | `local-metrics` | Metrics computed from git and ODD documents, stored in the user's vault | 3 | Not started |
+| 15 | `factory-kit` | Optional kit for the user's repository: guard script, issue templates, `CODEOWNERS`, auto-merge workflow shipped disabled | 12, 13 | Not started (proposed, after v1) |
 
 Features 5 to 10 and 13 depend on `backup-restore` because each of them writes to a user's configuration. Feature 14 writes only to the user's vault, which also needs the vault path from open item 1 in section 7.

@@ -223,11 +223,13 @@ The proposal is modelled on a public demonstration repository, `0GiS0/tesla-road
 
 **Unverified.** How the demonstration works beyond its files: only the video description and the repository were read; the video itself was not transcribed.
 
-**Open.** Whether the kit targets GitHub only, since its agent and Actions are GitHub features, and whether it can support the Copilot cloud agent, which is not among the three agents of v1. Whether the installer may create the tokens or only document them, given that atlas-ai must never write or print secrets.
+**Decided.** The kit targets GitHub only, because its pull requests, labels, `CODEOWNERS` and Actions are GitHub features. The guard script reads pull request data and decides nothing else, so it does not depend on which agent opened the pull request. The kit does not install or configure the GitHub Copilot cloud agent, which is not among the three agents of v1.
+
+**Decided.** The installer never creates access tokens. It documents which tokens the lights-out workflows need and what scopes they require, and the user creates and stores them, since atlas-ai never writes or prints secrets (section 4).
 
 ## 7. Open questions
 
-This list consolidates every Open and Unverified item above, followed by four further questions.
+This list consolidates every Open and Unverified item above, followed by two further questions.
 
 **Open**
 
@@ -250,8 +252,6 @@ This list consolidates every Open and Unverified item above, followed by four fu
 
 12. License.
 13. Whether the shipped skills run correctly inside each agent. This has not been verified in any agent.
-14. Whether the software factory kit targets GitHub only, and whether it supports the Copilot cloud agent.
-15. Whether the installer may create the access tokens the lights-out workflows need, or only document them.
 
 ## 8. Roadmap
 

@@ -33,10 +33,10 @@
       "reason": "The installer needs the confined atomic write restore already has.",
       "substeps": [],
       "mode": "standard",
-      "status": "pending",
+      "status": "done",
       "attempts": 0,
-      "evidence": "",
-      "commit": ""
+      "evidence": "RED: write_test.go undefined: WriteFile. GREEN: 163 tests pass in 5 packages; go vet clean.",
+      "commit": "23ed3f1"
     },
     {
       "id": "T2",
@@ -49,9 +49,9 @@
       "reason": "Adapters are the extension point for later agents.",
       "substeps": [],
       "mode": "standard",
-      "status": "pending",
+      "status": "done",
       "attempts": 0,
-      "evidence": "",
+      "evidence": "RED: agents_test.go undefined: All, Lookup. GREEN: go test ./internal/agents ok; parent re-ran go vet and go test ./...: 174 pass.",
       "commit": ""
     },
     {
@@ -129,7 +129,7 @@
     ],
     "note": "One coherent behaviour; forecast above the 400-line heuristic is explained, not split."
   },
-  "progress": "Branch created; no source written yet.",
+  "progress": "T1, T2 done; T3 implemented and verified, pending commit.",
   "evidence": [],
-  "next_step": "T1: export WriteFile from internal/backup"
+  "next_step": "Commit T3, then T4: install-skills CLI command"
 }

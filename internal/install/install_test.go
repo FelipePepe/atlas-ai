@@ -2,6 +2,7 @@ package install
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -164,7 +165,7 @@ func TestPlanRejectsSymlinks(t *testing.T) {
 	if err := os.Symlink(target, link); err != nil {
 		t.Skipf("symlinks unavailable: %v", err)
 	}
-	if _, err := Plan(testFS, []string{dir}); err == nil || !bytes.Contains([]byte(err.Error()), []byte(link)) {
+	if _, err := Plan(testFS, []string{dir}); err == nil || !bytes.Contains([]byte(err.Error()), []byte(fmt.Sprintf("%q", link))) {
 		t.Fatalf("Plan err = %v, want error naming %s", err, link)
 	}
 	if got := readFile(t, target); got != "x" {

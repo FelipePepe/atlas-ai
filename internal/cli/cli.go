@@ -23,11 +23,12 @@ type Env struct {
 const usage = `Usage: atlas-ai <command> [flags]
 
 Commands:
-  help      Show this help
-  version   Print the version and platform
-  paths     Print the resolved home and state directories
-  backups   List backup sets, newest first
-  restore   Restore a backup set: restore [--yes] [--force] <id>
+  help            Show this help
+  version         Print the version and platform
+  paths           Print the resolved home and state directories
+  backups         List backup sets, newest first
+  restore         Restore a backup set: restore [--yes] [--force] <id>
+  install-skills  Install the bundled skills: install-skills [--yes] [--agent <id>[,<id>...]]
 `
 
 // Run executes the command in args and returns the process exit code:
@@ -50,6 +51,8 @@ func Run(args []string, stdout, stderr io.Writer, env Env) int {
 		return runBackups(rest, stdout, stderr, env)
 	case "restore":
 		return runRestore(rest, stdout, stderr, env)
+	case "install-skills":
+		return runInstallSkills(rest, stdout, stderr, env)
 	default:
 		fmt.Fprintf(stderr, "atlas-ai: unknown command %q\n\n%s", cmd, usage)
 		return 2

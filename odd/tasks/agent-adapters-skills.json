@@ -68,7 +68,7 @@
       "status": "done",
       "attempts": 0,
       "evidence": "RED: install_test.go undefined: Entry, Plan, Create, Apply. GREEN: go test ./internal/install ok; parent re-ran go vet and go test ./...: 174 pass. NOT observed: Apply failure paths (Track error, write failing after earlier writes) have no test.",
-      "commit": ""
+      "commit": "4497a18"
     },
     {
       "id": "T4",
@@ -81,9 +81,9 @@
       "reason": "Same conventions as restore.",
       "substeps": [],
       "mode": "standard",
-      "status": "pending",
+      "status": "done",
       "attempts": 0,
-      "evidence": "",
+      "evidence": "RED: TestInstallSkillsYes exit 2 unknown command install-skills. GREEN: parent re-ran gofmt, go vet and go test ./...: 183 pass.",
       "commit": ""
     },
     {
@@ -129,9 +129,10 @@
     ],
     "note": "One coherent behaviour; forecast above the 400-line heuristic is explained, not split."
   },
-  "progress": "T1, T2, T3 done.",
+  "progress": "T1-T4 done; docs (T5) pending.",
   "evidence": [
-    "Apply failure paths untested (needs fault injection); code follows the plan but is unobserved"
+    "Apply failure paths untested (needs fault injection); code follows the plan but is unobserved",
+    "Review assessment unavailable: gentle-ai is not installed on this machine; commits treated as due, no preflight run"
   ],
-  "next_step": "T4: install-skills CLI command"
+  "next_step": "T5: README and scope-and-roadmap"
 }

@@ -52,7 +52,7 @@
       "status": "done",
       "attempts": 0,
       "evidence": "RED: agents_test.go undefined: All, Lookup. GREEN: go test ./internal/agents ok; parent re-ran go vet and go test ./...: 174 pass.",
-      "commit": ""
+      "commit": "c239f8e"
     },
     {
       "id": "T3",
@@ -65,9 +65,9 @@
       "reason": "Pure planning separated from applying keeps it testable.",
       "substeps": [],
       "mode": "standard",
-      "status": "pending",
+      "status": "done",
       "attempts": 0,
-      "evidence": "",
+      "evidence": "RED: install_test.go undefined: Entry, Plan, Create, Apply. GREEN: go test ./internal/install ok; parent re-ran go vet and go test ./...: 174 pass. NOT observed: Apply failure paths (Track error, write failing after earlier writes) have no test.",
       "commit": ""
     },
     {
@@ -129,7 +129,9 @@
     ],
     "note": "One coherent behaviour; forecast above the 400-line heuristic is explained, not split."
   },
-  "progress": "T1, T2 done; T3 implemented and verified, pending commit.",
-  "evidence": [],
-  "next_step": "Commit T3, then T4: install-skills CLI command"
+  "progress": "T1, T2, T3 done.",
+  "evidence": [
+    "Apply failure paths untested (needs fault injection); code follows the plan but is unobserved"
+  ],
+  "next_step": "T4: install-skills CLI command"
 }

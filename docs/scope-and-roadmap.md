@@ -35,6 +35,8 @@ macOS and Cursor are not part of v1. This follows from the platform and agent li
 
 The only agent configuration locations verified so far are the personal skills directories: `~/.claude/skills` for Claude Code, and `~/.copilot/skills` for both GitHub Copilot CLI and GitHub Copilot in VS Code. No other configuration path is stated in this document, because none has been verified.
 
+**Unverified.** On Windows, `install-skills` writes to `%USERPROFILE%\.claude\skills` and `%USERPROFILE%\.copilot\skills`, by analogy with Linux. These locations have not been checked on a Windows machine. Both Copilot agents share `~/.copilot/skills`, so installing for either writes the same files once.
+
 ## 3. Distribution
 
 **Decided.** atlas-ai is distributed as a Go binary, built in GitHub Actions and published as GitHub releases with checksums.
@@ -265,7 +267,7 @@ One guiding rule: backup and restore comes before any feature that writes to a u
 | 2 | `scope-roadmap` | This document | - | Done |
 | 3 | `cli-skeleton` | Command structure, platform paths for Linux and Windows, CI running tests on both | - | Done |
 | 4 | `backup-restore` | Back up and restore every file the installer may modify | 3 | Done |
-| 5 | `agent-adapters-skills` | Install the embedded skills into the three agents | 1, 3, 4 | Not started |
+| 5 | `agent-adapters-skills` | Install the embedded skills into the three agents | 1, 3, 4 | Done |
 | 6 | `mcp-config` | Register MCP servers per agent | 3, 4 | Not started |
 | 7 | `component-installers` | Download, verify and install Engram, cbm, RTK, Headroom and the logbook | 3, 4 | Not started |
 | 8 | `hooks-and-rules` | Hooks, global instructions and the persona | 3, 4 | Not started |

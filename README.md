@@ -7,8 +7,9 @@ token-saving tools, skills, hooks and MCP server configuration for your coding a
 ## Status
 
 Early development. The repository contains the agent-neutral skills with the contract test
-that guards them, and the skeleton of the `atlas-ai` command. The installer itself does not
-exist yet: the command reports its version and paths, and lists and restores backup sets.
+that guards them, and the skeleton of the `atlas-ai` command. The full installer does not exist
+yet: the command reports its version and paths, lists and restores backup sets, and installs the
+skills into the supported agents.
 
 ## Usage
 
@@ -19,6 +20,8 @@ atlas-ai paths      Print the home and state directories atlas-ai uses
 atlas-ai backups    List the backup sets, newest first
 atlas-ai restore [--yes] [--force] <id>
                     Restore the files of a backup set
+atlas-ai install-skills [--yes] [--agent <id>[,<id>...]]
+                    Install the bundled skills into the agents
 ```
 
 `paths` resolves the directories from the environment of the current platform:
@@ -53,6 +56,27 @@ its own backup set, labelled `restore <id>`, so a restore can be undone the same
 Exit codes: `0` everything restored, `1` runtime error, abort or conflicts left in place,
 `2` usage error.
 
+### Install skills
+
+`install-skills` copies the embedded skills, unchanged, into each agent's personal skills directory:
+
+| Agent id | Agent | Directory |
+|---|---|---|
+| `claude-code` | Claude Code | `~/.claude/skills` |
+| `copilot-cli` | GitHub Copilot CLI | `~/.copilot/skills` |
+| `copilot-vscode` | GitHub Copilot in VS Code | `~/.copilot/skills` |
+
+Without `--agent` it targets all three; the two Copilot agents share one directory, which is written
+once. `--agent` takes a comma-separated list and can be repeated. On Windows the same paths are
+resolved under `%USERPROFILE%` (not yet verified on a Windows machine).
+
+The command prints one line per `<skill>/SKILL.md` with its action (`create`, `update` or `unchanged`)
+and asks `Apply? [y/N]` unless `--yes` is given. It never follows symlinks and refuses a target that is
+not a regular file. Every change is recorded in a backup set first, so
+`atlas-ai restore <id>` undoes the install. When every file is already up to date it prints
+`nothing to install` and creates no backup set. Exit codes follow `restore`: `0` ok, `1` runtime
+error or abort, `2` usage error.
+
 ## Layout
 
 | Path | Contents |
@@ -60,6 +84,8 @@ Exit codes: `0` everything restored, `1` runtime error, abort or conflicts left 
 | `cmd/atlas-ai` | Entry point of the binary |
 | `internal/cli` | Command dispatcher and commands |
 | `internal/platform` | Platform paths for Linux and Windows |
+| `internal/agents` | Supported agents and their skills directories |
+| `internal/install` | Plan and apply the skills install, with backup |
 | `internal/backup` | Backup sets, listing and restore with drift detection |
 | `skills` | Agent-neutral skills, embedded in the binary later |
 | `docs` | Scope and roadmap |

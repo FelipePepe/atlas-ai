@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -262,7 +261,7 @@ func (s *Store) Restore(id string, force bool) (*Result, error) {
 		path := ops[i].entry.Path
 		var rerr error
 		if st.existed {
-			rerr = writeAtomic(s.Home, path, st.data, st.mode)
+			rerr = WriteFile(s.Home, path, st.data, st.mode)
 		} else {
 			rerr = removeFile(s.Home, path)
 		}
@@ -350,7 +349,7 @@ func applyOps(home string, ops []op, res *Result) (int, error) {
 			applied++
 			continue
 		}
-		if err := writeAtomic(home, o.entry.Path, o.data, os.FileMode(o.entry.Mode)); err != nil {
+		if err := WriteFile(home, o.entry.Path, o.data, os.FileMode(o.entry.Mode)); err != nil {
 			return applied, err
 		}
 		res.Restored = append(res.Restored, o.entry.Path)
@@ -375,48 +374,6 @@ func removeFile(home, path string) error {
 	}
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("delete %q: %w", path, err)
-	}
-	return nil
-}
-
-// writeAtomic replaces path with data through a temporary file in the same
-// directory, so a failure never leaves a half-written target.
-func writeAtomic(home, path string, data []byte, mode os.FileMode) error {
-	if err := confine(home, path); err != nil {
-		return fmt.Errorf("restore %q: %w", path, err)
-	}
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return fmt.Errorf("restore %q: %w", path, err)
-	}
-	tmp, err := os.CreateTemp(dir, ".atlas-ai-restore-*.tmp")
-	if err != nil {
-		return fmt.Errorf("restore %q: %w", path, err)
-	}
-	tmpName := tmp.Name()
-	fail := func(err error) error {
-		_ = tmp.Close()
-		_ = os.Remove(tmpName)
-		return fmt.Errorf("restore %q: %w", path, err)
-	}
-	if _, err := tmp.Write(data); err != nil {
-		return fail(err)
-	}
-	if runtime.GOOS != "windows" {
-		if err := tmp.Chmod(mode.Perm()); err != nil {
-			return fail(err)
-		}
-	}
-	if err := tmp.Sync(); err != nil {
-		return fail(err)
-	}
-	if err := tmp.Close(); err != nil {
-		_ = os.Remove(tmpName)
-		return fmt.Errorf("restore %q: %w", path, err)
-	}
-	if err := os.Rename(tmpName, path); err != nil {
-		_ = os.Remove(tmpName)
-		return fmt.Errorf("restore %q: %w", path, err)
 	}
 	return nil
 }

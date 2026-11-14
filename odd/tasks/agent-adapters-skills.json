@@ -1,0 +1,135 @@
+{
+  "feature": "agent-adapters-skills",
+  "objective": "Install the embedded skills into Claude Code and GitHub Copilot (CLI and VS Code) with backup, plan and confirmation.",
+  "problem": "skills.FS is embedded but nothing reads it; the three v1 agents get no skills from atlas-ai.",
+  "scope": [
+    "internal/backup: export the atomic write",
+    "internal/agents: skills directory per agent",
+    "internal/install: plan and apply with backup",
+    "internal/cli: install-skills command",
+    "README.md and docs/scope-and-roadmap.md"
+  ],
+  "constraints": [
+    "Back up before every write; never follow symlinks",
+    "Never write or print secrets",
+    "Windows skills paths are Unverified",
+    "Authored changed lines per task: planning heuristic of about 400, advisory only"
+  ],
+  "tdd": {
+    "mode": "on",
+    "source": "approved plan, same as previous features",
+    "runner": "go test ./..."
+  },
+  "route": "delegated direct: one writer per task (writer trigger: 2+ non-trivial files); parent verifies and commits",
+  "tasks": [
+    {
+      "id": "T1",
+      "step": 1,
+      "description": "Export the atomic write from internal/backup as WriteFile",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/backup/..."
+      },
+      "reason": "The installer needs the confined atomic write restore already has.",
+      "substeps": [],
+      "mode": "standard",
+      "status": "pending",
+      "attempts": 0,
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T2",
+      "step": 2,
+      "description": "New package internal/agents: skills directory per agent, deduplicated targets",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/agents/..."
+      },
+      "reason": "Adapters are the extension point for later agents.",
+      "substeps": [],
+      "mode": "standard",
+      "status": "pending",
+      "attempts": 0,
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T3",
+      "step": 3,
+      "description": "New package internal/install: Plan and Apply with backup transaction",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/install/..."
+      },
+      "reason": "Pure planning separated from applying keeps it testable.",
+      "substeps": [],
+      "mode": "standard",
+      "status": "pending",
+      "attempts": 0,
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T4",
+      "step": 4,
+      "description": "CLI command install-skills with --yes and --agent",
+      "tool": "Write",
+      "args": {
+        "query": "go test ./internal/cli/..."
+      },
+      "reason": "Same conventions as restore.",
+      "substeps": [],
+      "mode": "standard",
+      "status": "pending",
+      "attempts": 0,
+      "evidence": "",
+      "commit": ""
+    },
+    {
+      "id": "T5",
+      "step": 5,
+      "description": "Docs: README and scope-and-roadmap",
+      "tool": "Write",
+      "args": {
+        "query": "git diff --stat"
+      },
+      "reason": "Docs travel with the behaviour.",
+      "substeps": [],
+      "mode": "standard",
+      "status": "pending",
+      "attempts": 0,
+      "evidence": "",
+      "commit": ""
+    }
+  ],
+  "acceptance": [
+    "Fresh install writes SKILL.md files for the selected agents; rerun reports nothing to install",
+    "Existing different content is backed up and restorable with atlas-ai restore",
+    "Symlink or non-regular target aborts before any write",
+    "go vet and go test pass on ubuntu and windows"
+  ],
+  "delivery": {
+    "strategy": "single-pr",
+    "forecast_authored_lines": 550,
+    "running_authored_lines": 0,
+    "slices": [
+      {
+        "name": "agent-adapters-skills",
+        "branch": "feature/agent-adapters-skills",
+        "tasks": [
+          "T1",
+          "T2",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "base": "develop"
+      }
+    ],
+    "note": "One coherent behaviour; forecast above the 400-line heuristic is explained, not split."
+  },
+  "progress": "Branch created; no source written yet.",
+  "evidence": [],
+  "next_step": "T1: export WriteFile from internal/backup"
+}

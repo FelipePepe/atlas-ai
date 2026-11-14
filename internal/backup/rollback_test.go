@@ -54,7 +54,7 @@ func TestRestoreRollsBackWhenALaterFileFails(t *testing.T) {
 		writeFile(t, f2, "two-new", 0o640)
 		writeFile(t, f3, "three-new", 0o600)
 	})
-	// writeAtomic cannot create its temp file in f3's directory, so the
+	// WriteFile cannot create its temp file in f3's directory, so the
 	// third op fails after the first two have been applied.
 	makeReadOnly(t, filepath.Dir(f3))
 

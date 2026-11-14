@@ -84,7 +84,7 @@
       "status": "done",
       "attempts": 0,
       "evidence": "RED: TestInstallSkillsYes exit 2 unknown command install-skills. GREEN: parent re-ran gofmt, go vet and go test ./...: 183 pass.",
-      "commit": ""
+      "commit": "c9b003e"
     },
     {
       "id": "T5",
@@ -97,9 +97,9 @@
       "reason": "Docs travel with the behaviour.",
       "substeps": [],
       "mode": "standard",
-      "status": "pending",
+      "status": "done",
       "attempts": 0,
-      "evidence": "",
+      "evidence": "README usage, install-skills section and layout; roadmap row 5 Done; Windows skills paths marked Unverified. go test ./... still passes.",
       "commit": ""
     }
   ],
@@ -112,7 +112,7 @@
   "delivery": {
     "strategy": "single-pr",
     "forecast_authored_lines": 550,
-    "running_authored_lines": 0,
+    "running_authored_lines": 1190,
     "slices": [
       {
         "name": "agent-adapters-skills",
@@ -129,10 +129,11 @@
     ],
     "note": "One coherent behaviour; forecast above the 400-line heuristic is explained, not split."
   },
-  "progress": "T1-T4 done; docs (T5) pending.",
+  "progress": "T1-T5 done. Delivery: single PR to develop.",
   "evidence": [
     "Apply failure paths untested (needs fault injection); code follows the plan but is unobserved",
-    "Review assessment unavailable: gentle-ai is not installed on this machine; commits treated as due, no preflight run"
+    "Review assessment unavailable: gentle-ai is not installed on this machine; commits treated as due, no preflight run",
+    "Manual end-to-end run with go run not done (standing rule: never build after changes); the round trip install -> restore is covered by internal/cli/skills_test.go"
   ],
-  "next_step": "T5: README and scope-and-roadmap"
+  "next_step": "Push and open PR to develop"
 }
